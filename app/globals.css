@@ -1,26 +1,241 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg-page: #eeeeee;
+  --bg-panel-from: #fafafa;
+  --bg-panel-to: #e2e2e2;
+  --bg-input: #ffffff;
+  --border: #d2d2d2;
+  --border-button: #b2b2b2;
+  --btn-from: #bebebe;
+  --btn-to: #fbfbfb;
+  --text-heading: #535353;
+  --text-body: #202020;
+  --text-placeholder: #858585;
+  --text-button: #070707;
+  --success: #558964;
+  --success-soft: rgba(85, 137, 100, 0.12);
+  --danger: #9b4d4d;
+  --danger-soft: rgba(155, 77, 77, 0.1);
+  --shadow-panel: inset 0 14px 0 0 rgba(255, 255, 255, 1);
+  --shadow-button: inset 0 9px 5px rgba(255, 255, 255, 1);
+  --texture-dot: rgba(32, 32, 32, 0.16);
+
+  --card-width: 240px;
+  --card-height: 336px;
+  --card-radius: 12px;
+  --art-area-top: 50px;
+  --art-area-left: 20px;
+  --art-area-width: 200px;
+  --art-area-height: 150px;
+  --text-area-top: 208px;
+  --text-area-left: 20px;
+  --text-area-width: 200px;
+  --text-area-height: 108px;
+
+  --color-common: #b7b7b7;
+  --color-rare: #e4e4e4;
+  --color-legendary: #ff9e16;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background: var(--bg-page);
+  --color-foreground: var(--text-body);
+  --font-sans: var(--font-mono);
+  --font-mono: var(--font-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  background: var(--bg-page);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  min-height: 100vh;
+  background: var(--bg-page);
+  color: var(--text-body);
+  font-family: var(--font-mono), monospace;
+  position: relative;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.04;
+  background-image:
+    radial-gradient(circle at 1px 1px, var(--texture-dot) 1px, transparent 0),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.28), transparent 40%);
+  background-size: 11px 11px, 100% 100%;
+  z-index: 0;
+}
+
+body > * {
+  position: relative;
+  z-index: 1;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+::selection {
+  background: rgba(83, 83, 83, 0.18);
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+.app-panel {
+  background: linear-gradient(to bottom, var(--bg-panel-from), var(--bg-panel-to));
+  border: 3px solid var(--border);
+  border-radius: 25px;
+  box-shadow: var(--shadow-panel);
+}
+
+.app-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 58px;
+  padding: 0.95rem 1.5rem;
+  border-radius: 39px;
+  outline: 2px solid var(--border-button);
+  outline-offset: 0;
+  background: linear-gradient(to bottom, var(--btn-from), var(--btn-to));
+  color: var(--text-button);
+  box-shadow: var(--shadow-button);
+  font-size: 1rem;
+  line-height: 1.3;
+  transition:
+    transform 120ms ease,
+    filter 120ms ease,
+    opacity 120ms ease;
+}
+
+.app-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: brightness(1.02);
+}
+
+.app-button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.app-button:focus-visible,
+.app-input:focus-visible,
+.app-textarea:focus-visible,
+.app-checkbox:focus-visible {
+  outline: 2px solid rgba(32, 32, 32, 0.45);
+  outline-offset: 3px;
+}
+
+.app-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.app-input,
+.app-textarea {
+  width: 100%;
+  background: var(--bg-input);
+  color: var(--text-body);
+  border: 0;
+  box-shadow: 0 0 0 3px var(--border);
+}
+
+.app-input {
+  min-height: 46px;
+  border-radius: 7px;
+  padding: 0 1rem;
+  text-align: center;
+  font-size: 1rem;
+}
+
+.app-textarea {
+  min-height: 180px;
+  border-radius: 7px;
+  padding: 1rem;
+  resize: vertical;
+  font-size: 1rem;
+}
+
+.app-input::placeholder,
+.app-textarea::placeholder {
+  color: var(--text-placeholder);
+}
+
+.app-label {
+  font-size: 0.8125rem;
+  line-height: 1.3;
+  color: var(--text-body);
+}
+
+.app-muted {
+  color: rgba(32, 32, 32, 0.62);
+}
+
+.app-kicker {
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(32, 32, 32, 0.56);
+}
+
+.app-title {
+  font-family: var(--font-title), monospace;
+  color: var(--text-heading);
+}
+
+.app-checkbox {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  background: var(--bg-input);
+  box-shadow: 0 0 0 2px var(--border);
+  position: relative;
+  flex-shrink: 0;
+}
+
+.app-checkbox:checked::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border-radius: 3px;
+  background: linear-gradient(to bottom, #747474, #efefef);
+}
+
+.app-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(32, 32, 32, 0.35) transparent;
+}
+
+.app-scroll::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.app-scroll::-webkit-scrollbar-thumb {
+  background: rgba(32, 32, 32, 0.22);
+  border-radius: 999px;
+}
+
+@media (max-width: 640px) {
+  .app-button {
+    min-height: 52px;
+    font-size: 0.95rem;
+  }
+
+  .app-textarea {
+    min-height: 156px;
+  }
 }

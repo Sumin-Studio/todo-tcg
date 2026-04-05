@@ -20,7 +20,7 @@ See `PRD.md` for full product requirements.
 | Language | TypeScript (strict mode) |
 | Styling | Tailwind CSS v3 + CSS Modules for card effects |
 | Database | Supabase (Postgres + Realtime + Storage) |
-| Image generation | OpenAI DALL-E 3 (default) — swappable via env var |
+| Image generation | Alibaba Cloud qwen-image-2.0-pro (DashScope API) |
 | State (client) | React built-ins; Zustand only if prop drilling becomes deep |
 | Animations | CSS keyframes (MVP) |
 | Package manager | npm |
@@ -115,8 +115,7 @@ NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key   # Server-side only, never NEXT_PUBLIC_
 
-OPENAI_API_KEY=your-openai-key                    # Used server-side for DALL-E 3
-IMAGE_GEN_PROVIDER=openai                         # "openai" | "stability" — future swap point
+DASHSCOPE_API_KEY=your-dashscope-key              # Alibaba Cloud DashScope — server-side only, never NEXT_PUBLIC_
 ```
 
 ---
@@ -216,13 +215,19 @@ Triggered server-side in `app/api/generate-game/route.ts`:
 
 ```
 For each card in cardPool:
-  1. Call OpenAI DALL-E 3 with prompt:
-     "Fantasy trading card illustration of [taskName], epic detailed art, no text, no borders"
-  2. Download image buffer
-  3. Upload to Supabase Storage: bucket=card-art, path=[gameId]/[cardId].png
-  4. Set card.artUrl = public storage URL
+  1. POST https://dashscope-intl.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation
+     model: "qwen-image-2.0-pro"
+     prompt: "Fantasy trading card illustration of [taskName], epic detailed art, no text, no borders"
+     parameters: { size: "1024*1024", prompt_extend: true, watermark: false,
+                   negative_prompt: "blurry, low quality, text, borders, watermark" }
+  2. Response contains choices[0].message.content[0].image — a temporary URL (valid 24h)
+  3. Download image buffer from that URL immediately
+  4. Upload buffer to Supabase Storage: bucket=card-art, path=[gameId]/[cardId].png
+  5. Set card.artUrl = public Supabase Storage URL
 If generation fails for a card → set artUrl to "" (CSS gradient fallback in Card component)
 ```
+
+**Important**: The DashScope URL expires after 24 hours — always download and re-upload to Supabase Storage before returning from the API route. Never store the DashScope URL directly.
 
 Generation happens once, at game creation. Players load images from Supabase Storage CDN.
 

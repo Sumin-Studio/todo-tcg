@@ -1,65 +1,82 @@
-import Image from "next/image";
-
-export default function Home() {
+function TickMarks() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 260 140"
+      className="pointer-events-none absolute -right-14 -top-8 h-[120px] w-[220px] opacity-70"
+    >
+      <g stroke="#202020" strokeWidth="3" strokeLinecap="round" fill="none">
+        <path d="M194 10 206 24" />
+        <path d="M223 24 239 38" />
+        <path d="M204 44 214 58" />
+        <path d="M230 65 247 80" />
+        <path d="M198 102 208 116" />
+      </g>
+    </svg>
+  );
+}
+
+export default function LandingPage() {
+  return (
+    <main className="min-h-screen px-4 py-10 sm:px-6">
+      <div className="mx-auto flex min-h-[calc(100vh-5rem)] max-w-5xl flex-col items-center justify-center gap-10">
+        <div className="relative text-center">
+          <TickMarks />
+          <h1 className="app-title text-[3.8rem] leading-[0.75] tracking-[-0.09em] sm:text-[4.25rem]">
+            TO-DO
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="mx-auto mt-5 max-w-md text-sm leading-[1.35] text-[var(--text-body)] sm:text-base">
+            gamble and trade cards and finally
+            <br />
+            get some s*** done for once
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+
+        <section className="app-panel w-full max-w-[795px] p-5 sm:p-7">
+          <form action="/create" method="GET" className="flex flex-col gap-5">
+            <div>
+              <p className="app-kicker">Quick Start</p>
+              <p className="mt-2 text-sm leading-[1.45] text-[rgba(32,32,32,0.62)]">
+                Start with your task list, then tune players, rarities, and pack
+                settings on the next screen.
+              </p>
+            </div>
+
+            <div className="grid gap-5 md:grid-cols-[1fr_172px] md:items-end">
+              <label className="flex flex-col gap-2">
+                <span className="app-label">Enter your chores</span>
+                <textarea
+                  name="tasks"
+                  className="app-textarea"
+                  placeholder={"Clean the kitchen\nReply to invoices\nFinish sprint review"}
+                  defaultValue=""
+                />
+              </label>
+
+              <div className="flex flex-col gap-4">
+                <label className="flex flex-col gap-2">
+                  <span className="app-label">How many players</span>
+                  <input
+                    name="players"
+                    className="app-input"
+                    type="number"
+                    min={1}
+                    max={20}
+                    defaultValue={3}
+                  />
+                </label>
+
+                <button
+                  type="submit"
+                  className="app-button justify-center text-center text-[1.05rem]"
+                >
+                  Generates Cards →
+                </button>
+              </div>
+            </div>
+          </form>
+        </section>
+      </div>
+    </main>
   );
 }

@@ -1,123 +1,153 @@
 # CONTEXT.md — Handoff for Next Claude Instance
 
 Last updated: 2026-04-05
-Status: Project bootstrapped, ready to begin implementation
+Status: Full implementation complete. Design styling does NOT match Figma — needs complete UI reskin.
 
 ---
 
 ## What Has Been Done
 
-### 1. Project Documentation
-- **`PRD.md`** — Full product requirements (user flows, data model, card visual spec, pack algorithm, Supabase schema SQL, non-functional requirements)
-- **`CLAUDE.md`** — Complete developer reference (tech stack, full file structure, all architectural patterns, CSS conventions, implementation order, common pitfalls)
+### 1. Full Implementation (by previous Claude instances)
+Every file in the planned file structure exists and TypeScript passes clean (`npm run typecheck` → no errors):
 
-### 2. Next.js Project Initialized
-- `create-next-app` with TypeScript, Tailwind CSS v3, App Router, ESLint
-- Package name: `todo-tcg`
-- Node at `/usr/local/bin/node` (needed for launch.json — PATH doesn't include it by default)
-- Dev server runs via: `/usr/local/bin/node node_modules/next/dist/bin/next dev`
+**Lib layer (pure logic + data)**
+- `lib/types.ts` — all interfaces: `Rarity`, `Card`, `Player`, `PackSettings`, `Game`, `Completion`, `Result<T,E>`
+- `lib/hash.ts` — `djb2Hash` + `mulberry32` seeded PRNG
+- `lib/game-engine.ts` — `dealPacks`, `generateGameId`, `generateGmToken`
+- `lib/flavor-text.ts` — deterministic flavor text via `djb2Hash(cardId) % pool.length`
+- `lib/constants.ts` — flavor text pools, `DEFAULT_PACK_SETTINGS`
+- `lib/supabase/client.ts`, `server.ts`, `queries.ts` — full Supabase layer
 
-### 3. GitHub
-- Repo: `https://github.com/Sumin-Studio/todo-tcg`
-- Branch: `main`
-- All files committed and pushed
+**Components**
+- `components/cards/Card.tsx`, `CardBack.tsx`, `CardGrid.tsx`, `card.module.css`
+- `components/pack/BoosterPack.tsx`, `PackReveal.tsx`, `pack.module.css`
+- `components/dashboard/GMDashboard.tsx`, `PlayerRow.tsx`, `MiniCard.tsx`
+- `components/wizard/GameSetupWizard.tsx`, `TaskInput.tsx`, `PackSettings.tsx`, `CardPoolPreview.tsx`, `PlayerLinkList.tsx`
+- `components/ui/Button.tsx`, `Input.tsx`, `Modal.tsx`, `ProgressBar.tsx`
 
-### 4. Card Frames Reviewed
-Three PNG frames were shown by the user and design notes are captured in CLAUDE.md:
-- `public/frames/common.png` — gray border, "COMMON" text top-left (plain, no badge)
-- `public/frames/rare.png` — silver/chrome border, green pill badge top-left
-- `public/frames/legendary.png` — gold border, orange pill badge top-left
-- **The rarity badge is baked into the PNG** — do NOT render a separate rarity label in CSS
-- Full white interior — content layout is entirely CSS-defined
-- **These files have NOT been added to the repo yet** — the user needs to drop the PNGs into `public/frames/`
+**Pages + API**
+- `app/page.tsx` — landing page
+- `app/create/page.tsx` — GM game creation (wires to GameSetupWizard)
+- `app/gm/[gameId]/page.tsx` — GM dashboard
+- `app/play/[gameId]/[playerId]/page.tsx` + `PlayerPackView.tsx` — player pack opening
+- `app/api/generate-game/route.ts` — AI art generation + pack dealing + Supabase save
 
----
+**Hooks**
+- `hooks/useCompletions.ts` — player completion sync
+- `hooks/useGMDashboard.ts` — GM Realtime subscription
 
-## Key Decisions Made
+**Assets**
+- `public/frames/common.png`, `rare.png`, `legendary.png` — card frame PNGs are in place
 
-| Decision | Choice | Reason |
-|---|---|---|
-| Rarity assignment | GM tags each card manually | User confirmed |
-| Player sync | Supabase Realtime | User confirmed |
-| Card frames | Custom PNG per rarity | User provided designs |
-| Card art | AI-generated via DALL-E 3 | User confirmed |
-| Card effects | Common: none, Rare: shimmer, Legendary: parallax | User confirmed |
-| Card rendering | HTML/CSS layers (not server composited PNG) | Simpler, more flexible |
-| GM auth | gmToken in URL, validated server-side only | Never sent to client |
+### 2. Image Generation Provider
+Switched from DALL-E 3 → **qwen-image-2.0-pro** via Alibaba Cloud DashScope.
+- API route uses `DASHSCOPE_API_KEY` env var
+- Endpoint: `https://dashscope-intl.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation`
+- Response path: `output.choices[0].message.content[0].image` (temp URL, expires 24h)
+- Image is downloaded immediately and uploaded to Supabase Storage
 
----
-
-## What Is Blocked (User Action Required)
-
-1. **Drop PNG frames** into `public/frames/common.png`, `public/frames/rare.png`, `public/frames/legendary.png`
-2. **Create Supabase project** and run the SQL schema from `CLAUDE.md` → provides `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
-3. **Get OpenAI API key** for DALL-E 3 image generation → `OPENAI_API_KEY`
-4. **Create `.env.local`** with all env vars (template in `CLAUDE.md`)
+### 3. Design Reference
+`DESIGN.md` contains the full design spec extracted from Figma. Read it before touching any UI.
 
 ---
 
-## What To Build Next (Ordered)
+## Critical Issue: UI Does Not Match Figma Design
 
-Work through these in order — each step unblocks the next:
+**The entire UI was built with a dark theme that does not match the Figma design.**
 
-### Step 1 — Data model (`lib/types.ts`)
-Define all TypeScript interfaces: `Rarity`, `Card`, `Player`, `GameSettings`, `Game`, `Completion`, `Result<T,E>`. This is the foundation everything else depends on.
+| What was built | What the Figma shows |
+|---|---|
+| Dark background `bg-gray-950` | Light gray background `#EEEEEE` |
+| White text, violet accents | Near-black text `#202020`, no color accents |
+| Generic sans-serif fonts | IBM Plex Mono + Anonymous Pro (monospace-first) |
+| Standard rounded cards | Neomorphic panels with inner white shadow |
+| Violet gradient buttons | Gray gradient pill buttons |
 
-### Step 2 — Pure logic (`lib/hash.ts`, `lib/game-engine.ts`)
-- `djb2Hash(str)` and `mulberry32(seed)` in `lib/hash.ts`
-- `dealPacks(cardPool, settings, seed)` in `lib/game-engine.ts` — seeded shuffle, rarity bucket dealing, validation
-- These are pure functions with no deps — build and verify in isolation
+**The next task is a full UI reskin to match `DESIGN.md`.**
 
-### Step 3 — Flavor text (`lib/constants.ts`, `lib/flavor-text.ts`)
-- Static flavor text pools per rarity in `constants.ts` (10+ entries each)
-- `getFlavorText(cardId, rarity)` using `djb2Hash(cardId) % pool.length`
+---
 
-### Step 4 — Supabase layer (`lib/supabase/`)
-- `client.ts` — browser Supabase singleton
-- `server.ts` — server-side Supabase client
-- `queries.ts` — all DB calls: `createGame`, `getGame`, `insertCompletion`, `getCompletions`
-- **Requires `.env.local` to be set up first**
+## What Needs To Be Done Next
 
-### Step 5 — Card component (`components/cards/Card.tsx`, `card.module.css`)
-CSS layer stack (z-index 0→3): frame PNG → AI art → text → FX overlay
-- Common: no effect
-- Rare: `.shimmer` keyframe (diagonal gradient sweep)
-- Legendary: `.parallax` with `mousemove` listener writing `--rotateX`/`--rotateY` CSS vars
-- `isComplete` prop dims card + shows stamp overlay
-- `CardBack.tsx` for flip animation (solid colored back)
-- **Requires PNG frames to be in `public/frames/` first**
+### Priority 1 — UI Reskin (blocks everything visual)
 
-### Step 6 — GM wizard (`components/wizard/`, `app/create/page.tsx`)
-4-step flow: title → add tasks (name + rarity picker) → pack settings → preview + generate
-- Validate `cardsPerPack === sum(rarityDistribution)` before allowing generation
-- On submit: POST to `/api/generate-game`
+Read `DESIGN.md` fully before starting. Key changes needed across ALL pages and components:
 
-### Step 7 — Generate game API (`app/api/generate-game/route.ts`)
-Server-side only:
-1. Validate request body
-2. Call `dealPacks()` from game-engine
-3. For each card: call DALL-E 3, upload image to Supabase Storage `card-art/[gameId]/[cardId].png`
-4. Save full game record to Supabase `games` table
-5. Return `{ gameId, gmToken, playerLinks: [{ playerId, url }] }`
+**`app/globals.css`**
+- Replace `--background: #0a0a0a` / `--foreground: #ededed` with light theme tokens from DESIGN.md
+- Add all CSS custom properties from DESIGN.md (panel gradient, border colors, etc.)
+- Import IBM Plex Mono + Anonymous Pro via `next/font/google` in `app/layout.tsx`
 
-### Step 8 — Pack opening (`app/play/[gameId]/[playerId]/page.tsx`, pack components)
-- Server Component fetches game from Supabase, finds player, passes cards as props
-- `BoosterPack.tsx` — animated pack that tears open on click
-- `PackReveal.tsx` — sequences card flips (face-down fan → tap each to reveal)
-- After all flipped: show "View My Deck" → card grid todo list
+**`app/layout.tsx`**
+- Load fonts: `IBM_Plex_Mono` (weights 400, 700) + `Anonymous_Pro` (weight 700)
+- Set `--font-mono` and `--font-title` CSS variables
 
-### Step 9 — Player completion (`hooks/useCompletions.ts`)
-- Reads completions from Supabase on mount
-- `markComplete(cardId)` — optimistic UI + INSERT to completions table
-- Completions are append-only (no delete/update in MVP)
+**`app/page.tsx`** (landing page)
+- Current: dark bg, violet gradient, generic heading
+- Target: `#EEEEEE` bg, "TO-DO" in Anonymous Pro Bold 68px `#535353`, subtitle in IBM Plex Mono
+- Single rounded panel (neomorphic) containing textarea + player count input + "Generates Cards →" pill button
+- Decorative hand-drawn tick marks near title
+- Very subtle texture overlay at 4% opacity
 
-### Step 10 — GM dashboard (`app/gm/[gameId]/page.tsx`, `hooks/useGMDashboard.ts`)
-- Server Component validates `gmToken` query param against DB — redirect if invalid
-- `GMDashboard.tsx` (Client Component) subscribes to Supabase Realtime on `completions`
-- Per-player rows with mini card chips, overall progress bar
+**`app/create/page.tsx`** (game setup)
+- Current: dark bg, multi-step wizard centered in a small column
+- Target: two-column layout — left panel (form inputs + buttons) + right panel (card preview grid)
+- Both panels use neomorphic style from DESIGN.md
 
-### Step 11 — Landing page (`app/page.tsx`)
-Simple hero: title, tagline, "Create a Game" CTA → `/create`
+**All form inputs** (`components/ui/Input.tsx`, inline inputs)
+- White fill, 3px `#D2D2D2` border (outside), 7px radius, 46px height, IBM Plex Mono 16px centered
+
+**All buttons** (`components/ui/Button.tsx`)
+- Gray gradient fill (`#BEBEBE` → `#FBFBFB`), 2px `#B2B2B2` outside border, 39px radius (pill)
+- Inner white glow shadow, IBM Plex Mono ~21px, text `#070707`
+
+**Panel container** (used in wizard, GM dashboard, etc.)
+- `linear-gradient(to bottom, #FAFAFA, #E2E2E2)`, 3px `#D2D2D2` border, 25px radius
+- `box-shadow: inset 0 14px 0 0 rgba(255,255,255,1)`
+
+---
+
+### Priority 2 — Supabase Setup (user action required)
+
+The user still needs to:
+1. Create a Supabase project at supabase.com
+2. Run the SQL schema from `CLAUDE.md` in the SQL Editor
+3. Enable Realtime on the `completions` table
+4. Create `card-art` storage bucket (public: true)
+5. Fill in `.env.local`:
+   ```
+   NEXT_PUBLIC_SUPABASE_URL=
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=
+   SUPABASE_SERVICE_ROLE_KEY=
+   ```
+
+`.env.local` already has `DASHSCOPE_API_KEY` filled in.
+
+---
+
+### Priority 3 — End-to-End Test
+
+Once Supabase is set up:
+1. `npm run dev`
+2. Go to `/create` — create a game with 2–3 tasks
+3. Verify AI art generates and uploads to Supabase Storage
+4. Open a player link → verify pack opening flow
+5. Complete a card → verify it syncs to GM dashboard via Realtime
+
+---
+
+## Key Decisions Already Made
+
+| Decision | Choice |
+|---|---|
+| Image generation | qwen-image-2.0-pro via DashScope (Singapore region) |
+| Rarity assignment | GM tags each card manually |
+| Player sync | Supabase Realtime |
+| Card frames | Custom PNG per rarity (files already in `public/frames/`) |
+| Card effects | Common: none, Rare: shimmer, Legendary: parallax |
+| Card rendering | HTML/CSS layers (not server composited PNG) |
+| GM auth | gmToken in URL, validated server-side only, never passed to client |
+| Completion | Append-only (`completions` table, no UPDATE/DELETE in MVP) |
 
 ---
 
@@ -128,16 +158,14 @@ Simple hero: title, tagline, "Create a Game" CTA → `/create`
 - **Never** use `Math.random()` for pack dealing — use `mulberry32` from `lib/hash.ts`
 - **Never** render a rarity label in CSS/HTML — it's baked into the PNG frames
 - AI art is generated **once at game creation**, stored in Supabase Storage — player URLs never trigger generation
+- DashScope image URLs expire in 24h — always download + re-upload to Supabase immediately
 - `Card.tsx` is a pure presentational component — `isComplete` is a prop, card object is never mutated
 
 ---
 
-## Dev Server Note
+## Dev Server
 
-The preview dev server launch config is at `.claude/launch.json`. It uses full paths because the MCP process PATH doesn't include `/usr/local/bin`:
-```json
-{
-  "runtimeExecutable": "/usr/local/bin/node",
-  "runtimeArgs": ["/Users/simon.weng/Desktop/MyProject/TODO-TCG/node_modules/next/dist/bin/next", "dev"]
-}
+```bash
+npm run dev       # localhost:3000
+npm run typecheck # currently passes clean — keep it that way
 ```
