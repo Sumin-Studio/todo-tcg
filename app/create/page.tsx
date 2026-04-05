@@ -42,19 +42,8 @@ export default async function CreatePage({ searchParams }: CreatePageProps) {
   };
 
   return (
-    <main className="min-h-screen px-4 py-8 sm:px-6 sm:py-10">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
-        <div className="flex flex-col gap-2">
-          <p className="app-kicker">Game Setup</p>
-          <h1 className="app-title text-4xl leading-[0.82] tracking-[-0.07em] sm:text-5xl">
-            Build the deck.
-          </h1>
-          <p className="max-w-2xl text-sm leading-[1.45] text-[rgba(32,32,32,0.62)]">
-            Add tasks, tune pack distribution, and generate a shareable game
-            without leaving this screen.
-          </p>
-        </div>
-
+    <main className="min-h-screen px-3 py-4 sm:px-4 sm:py-5">
+      <div className="w-full max-w-[1880px]">
         <GameSetupWizard
           initialState={{
             title:

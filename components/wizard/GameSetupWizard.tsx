@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Card from "@/components/cards/Card";
 import { getFlavorText } from "@/lib/flavor-text";
-import type { PackSettings } from "@/lib/types";
+import type { PackSettings, Rarity } from "@/lib/types";
 import { DEFAULT_PACK_SETTINGS } from "@/lib/constants";
 import PlayerLinkList from "./PlayerLinkList";
 import Button from "@/components/ui/Button";
@@ -30,6 +30,8 @@ interface GameSetupWizardProps {
   initialState?: InitialWizardState;
 }
 
+const RARITIES: Rarity[] = ["common", "rare", "legendary"];
+
 export default function GameSetupWizard({
   initialState,
 }: GameSetupWizardProps) {
@@ -44,6 +46,7 @@ export default function GameSetupWizard({
   const [generating, setGenerating] = useState(false);
   const [genError, setGenError] = useState("");
   const [result, setResult] = useState<GeneratedGame | null>(null);
+  const [activeCardIndex, setActiveCardIndex] = useState<number | null>(null);
 
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   const previewCards = useMemo(
@@ -85,6 +88,15 @@ export default function GameSetupWizard({
 
   function removeTask(index: number) {
     setTasks((current) => current.filter((_, currentIndex) => currentIndex !== index));
+    setActiveCardIndex((current) => (current === index ? null : current));
+  }
+
+  function updateTaskRarity(index: number, rarity: Rarity) {
+    setTasks((current) =>
+      current.map((task, currentIndex) =>
+        currentIndex === index ? { ...task, rarity } : task
+      )
+    );
   }
 
   async function generate() {
@@ -123,8 +135,8 @@ export default function GameSetupWizard({
   }
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[400px_minmax(0,1fr)]">
-      <aside className="app-panel p-6">
+    <div className="grid gap-6 xl:grid-cols-[310px_minmax(0,1fr)]">
+      <aside className="app-panel min-h-[760px] p-5">
         <div className="flex h-full flex-col gap-6">
           <div className="flex flex-col gap-5">
             <label className="flex flex-col gap-2">
@@ -177,13 +189,13 @@ export default function GameSetupWizard({
           </div>
 
           <div className="flex flex-wrap gap-3">
-            <Button onClick={addTask} className="min-w-[168px] flex-1">
+            <Button onClick={addTask} className="min-w-0 flex-1 px-5 text-sm">
               + Create
             </Button>
             <Button
               onClick={generate}
               disabled={generating || !canGenerate()}
-              className="min-w-[168px] flex-1"
+              className="min-w-0 flex-1 px-5 text-sm"
             >
               {generating ? "Creating..." : "Play →"}
             </Button>
@@ -194,37 +206,6 @@ export default function GameSetupWizard({
               {genError}
             </div>
           )}
-
-          <div className="rounded-[22px] border border-[var(--border)] bg-white/45 p-4">
-            <p className="app-kicker">Cards</p>
-            <ul className="app-scroll mt-3 flex max-h-[280px] flex-col gap-2 overflow-y-auto pr-1">
-              {tasks.length === 0 ? (
-                <li className="rounded-[18px] border border-dashed border-[var(--border)] px-4 py-6 text-center text-sm text-[rgba(32,32,32,0.56)]">
-                  No cards yet.
-                </li>
-              ) : (
-                tasks.map((task, index) => (
-                  <li
-                    key={`${task.name}-${index}`}
-                    className="flex items-center justify-between gap-3 rounded-[18px] border border-[var(--border)] bg-white/60 px-4 py-3"
-                  >
-                    <div className="min-w-0">
-                      <p className="truncate text-sm">{task.name}</p>
-                      <p className="mt-1 text-xs uppercase tracking-[0.12em] text-[rgba(32,32,32,0.52)]">
-                        common
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => removeTask(index)}
-                      className="rounded-full border border-[var(--border)] px-3 py-1 text-xs text-[rgba(32,32,32,0.64)] transition-colors hover:bg-white"
-                    >
-                      Remove
-                    </button>
-                  </li>
-                ))
-              )}
-            </ul>
-          </div>
 
           {result && (
             <PlayerLinkList
@@ -238,16 +219,82 @@ export default function GameSetupWizard({
         </div>
       </aside>
 
-      <section className="app-panel min-h-[720px] p-6">
-        <div className="app-scroll flex h-full flex-wrap content-start gap-x-8 gap-y-10 overflow-y-auto">
+      <section className="min-h-[760px] overflow-hidden rounded-[25px] px-1 py-1">
+        <div className="app-scroll h-full overflow-y-auto">
+          <div className="flex min-h-full flex-wrap content-start gap-x-10 gap-y-12 px-2 py-3 sm:px-3 sm:py-4 xl:px-4 xl:py-5">
           {previewCards.map((card, index) => (
             <div
               key={card.id}
-              className={index % 2 === 0 ? "scale-[0.92] rotate-[-1.1deg]" : "scale-[0.92] rotate-[1deg]"}
+              className={`group relative origin-top-left ${index % 2 === 0 ? "scale-[0.94] rotate-[-0.75deg]" : "scale-[0.94] rotate-[0.8deg]"}`}
+              onMouseEnter={() => setActiveCardIndex(index)}
+              onMouseLeave={() =>
+                setActiveCardIndex((current) => (current === index ? null : current))
+              }
             >
-              <Card card={card} isComplete={false} />
+              <button
+                type="button"
+                className="block rounded-[18px]"
+                onClick={() =>
+                  setActiveCardIndex((current) => (current === index ? null : index))
+                }
+              >
+                <Card card={card} isComplete={false} />
+              </button>
+
+              <div
+                className={`pointer-events-none absolute inset-x-0 top-3 flex justify-end px-3 transition-opacity ${
+                  activeCardIndex === index ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                }`}
+              >
+                <button
+                  type="button"
+                  className="pointer-events-auto flex h-8 w-8 items-center justify-center rounded-full border border-[var(--border)] bg-white/92 text-lg leading-none text-[rgba(32,32,32,0.78)] shadow-[0_6px_10px_rgba(0,0,0,0.08)]"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    removeTask(index);
+                  }}
+                  aria-label={`Delete ${card.taskName}`}
+                >
+                  ×
+                </button>
+              </div>
+
+              <div
+                className={`pointer-events-none absolute inset-x-0 bottom-3 flex justify-center px-3 transition-opacity ${
+                  activeCardIndex === index ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                }`}
+              >
+                <div className="pointer-events-auto flex gap-1 rounded-full border border-[var(--border)] bg-white/92 p-1 shadow-[0_8px_16px_rgba(0,0,0,0.08)]">
+                  {RARITIES.map((rarity) => {
+                    const selected = tasks[index]?.rarity === rarity;
+                    return (
+                      <button
+                        key={rarity}
+                        type="button"
+                        className={`rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.12em] transition-colors ${
+                          selected
+                            ? "bg-[rgba(32,32,32,0.1)] text-[rgba(32,32,32,0.86)]"
+                            : "text-[rgba(32,32,32,0.48)]"
+                        }`}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          updateTaskRarity(index, rarity);
+                        }}
+                      >
+                        {rarity}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           ))}
+            {previewCards.length === 0 && (
+              <div className="flex min-h-[620px] w-full items-start justify-start">
+                <div className="h-full w-full" />
+              </div>
+            )}
+          </div>
         </div>
       </section>
     </div>

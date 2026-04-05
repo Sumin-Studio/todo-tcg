@@ -62,11 +62,12 @@ body::before {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  opacity: 0.04;
+  opacity: 1;
   background-image:
-    radial-gradient(circle at 1px 1px, var(--texture-dot) 1px, transparent 0),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.28), transparent 40%);
-  background-size: 11px 11px, 100% 100%;
+    linear-gradient(rgba(255, 255, 255, 0.72) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.72) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.025), rgba(255, 255, 255, 0.08));
+  background-size: 28px 28px, 28px 28px, 100% 100%;
   z-index: 0;
 }
 

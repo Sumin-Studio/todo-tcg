@@ -5,6 +5,9 @@ import { dealPacks, generateGameId, generateGmToken } from "@/lib/game-engine";
 import { getFlavorText } from "@/lib/flavor-text";
 import type { Card, PackSettings, Rarity } from "@/lib/types";
 
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 interface TaskInput {
   name: string;
   rarity: Rarity;
@@ -159,7 +162,7 @@ export async function POST(req: NextRequest) {
 
   if (!saveResult.success) {
     return NextResponse.json(
-      { error: "Failed to save game" },
+      { error: saveResult.error.message || "Failed to save game" },
       { status: 500 }
     );
   }
