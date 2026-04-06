@@ -54,7 +54,7 @@ export default function Card({ card, isComplete, onClick }: CardProps) {
     function onTouchMove(e: TouchEvent) {
       e.preventDefault(); // stop page scroll — requires non-passive listener
       const t = e.touches[0];
-      if (!t || !touchStart.current) return;
+      if (!t || !touchStart.current || !cardRef.current) return;
       const dx = t.clientX - touchStart.current.x;
       const dy = t.clientY - touchStart.current.y;
       // ±120px drag → ±20deg tilt
@@ -62,16 +62,17 @@ export default function Card({ card, isComplete, onClick }: CardProps) {
       const rotateX = clamp((-dy / 120) * 20, -20, 20);
       const mx = clamp(50 + (dx / 120) * 50, 0, 100).toFixed(1) + "%";
       const my = clamp(50 + (dy / 120) * 50, 0, 100).toFixed(1) + "%";
-      el.style.setProperty("--rotateY", `${rotateY}deg`);
-      el.style.setProperty("--rotateX", `${rotateX}deg`);
-      el.style.setProperty("--mx", mx);
-      el.style.setProperty("--my", my);
+      cardRef.current.style.setProperty("--rotateY", `${rotateY}deg`);
+      cardRef.current.style.setProperty("--rotateX", `${rotateX}deg`);
+      cardRef.current.style.setProperty("--mx", mx);
+      cardRef.current.style.setProperty("--my", my);
     }
 
     function onTouchEnd() {
       touchStart.current = null;
-      el.style.setProperty("--rotateX", "0deg");
-      el.style.setProperty("--rotateY", "0deg");
+      if (!cardRef.current) return;
+      cardRef.current.style.setProperty("--rotateX", "0deg");
+      cardRef.current.style.setProperty("--rotateY", "0deg");
     }
 
     el.addEventListener("touchstart", onTouchStart, { passive: true });
