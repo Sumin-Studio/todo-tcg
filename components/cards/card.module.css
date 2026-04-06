@@ -67,8 +67,8 @@
   pointer-events: none;
   border-radius: var(--card-radius);
   overflow: hidden;
-  opacity: 0.92;
-  mix-blend-mode: screen;
+  opacity: 0.85;
+  mix-blend-mode: color-dodge;
 }
 
 .holographicLayer::before,
@@ -84,18 +84,18 @@
     linear-gradient(
       118deg,
       transparent 16%,
-      rgba(255, 120, 214, 0.3) 28%,
-      rgba(118, 216, 255, 0.26) 42%,
-      rgba(255, 255, 255, 0.34) 50%,
-      rgba(140, 255, 194, 0.24) 60%,
-      rgba(255, 210, 84, 0.26) 72%,
-      transparent 84%
+      rgba(255, 80, 200, 0.22) 28%,
+      rgba(80, 200, 255, 0.2) 42%,
+      rgba(160, 255, 160, 0.18) 54%,
+      rgba(255, 200, 60, 0.2) 66%,
+      rgba(180, 80, 255, 0.18) 78%,
+      transparent 88%
     ),
     radial-gradient(
       circle at var(--mx, 50%) var(--my, 50%),
-      rgba(255, 255, 255, 0.34) 0%,
-      rgba(255, 255, 255, 0.16) 18%,
-      transparent 48%
+      rgba(200, 180, 255, 0.22) 0%,
+      rgba(120, 200, 255, 0.1) 22%,
+      transparent 50%
     );
   background-size: 210% 210%, 100% 100%;
   background-position: calc(var(--mx, 50%) * 1.1) calc(var(--my, 50%) * 0.9), center;
@@ -105,15 +105,10 @@
   background:
     repeating-linear-gradient(
       105deg,
-      rgba(255, 255, 255, 0.08) 0 2px,
-      rgba(255, 255, 255, 0) 2px 6px
-    ),
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.14),
-      rgba(255, 255, 255, 0.02)
+      rgba(180, 180, 255, 0.06) 0 2px,
+      transparent 2px 6px
     );
-  opacity: 0.65;
+  opacity: 0.6;
 }
 
 .rareHolographic::before {
@@ -121,34 +116,32 @@
     linear-gradient(
       118deg,
       transparent 14%,
-      rgba(255, 255, 255, 0.18) 26%,
-      rgba(214, 229, 255, 0.22) 42%,
-      rgba(255, 255, 255, 0.34) 52%,
-      rgba(207, 221, 235, 0.18) 64%,
-      rgba(255, 255, 255, 0.2) 76%,
+      rgba(100, 160, 255, 0.2) 28%,
+      rgba(160, 220, 255, 0.18) 44%,
+      rgba(100, 180, 255, 0.2) 58%,
+      rgba(140, 200, 255, 0.16) 72%,
       transparent 88%
     ),
     radial-gradient(
       circle at var(--mx, 50%) var(--my, 50%),
-      rgba(255, 255, 255, 0.28) 0%,
-      rgba(214, 225, 237, 0.14) 20%,
-      transparent 48%
+      rgba(140, 200, 255, 0.2) 0%,
+      rgba(100, 160, 220, 0.1) 22%,
+      transparent 50%
     );
   background-size: 210% 210%, 100% 100%;
   background-position: calc(var(--mx, 50%) * 1.1) calc(var(--my, 50%) * 0.9), center;
-  filter: saturate(0.75) brightness(1.04);
 }
 
 .rareHolographic::after {
-  opacity: 0.42;
+  opacity: 0.35;
 }
 
 .legendaryHolographic::before {
-  filter: saturate(1.35) brightness(1.16);
+  filter: saturate(1.4) brightness(1.1);
 }
 
 .legendaryHolographic::after {
-  opacity: 0.72;
+  opacity: 0.55;
 }
 
 .taskName {
