@@ -11,7 +11,7 @@ interface PackRevealProps {
   onComplete: () => void;
 }
 
-type AnimPhase = "idle" | "revealing" | "exiting";
+type AnimPhase = "idle" | "fold-out" | "fold-in" | "exiting";
 
 export default function PackReveal({ cards, onComplete }: PackRevealProps) {
   const [revealed, setRevealed] = useState(0);
@@ -19,8 +19,16 @@ export default function PackReveal({ cards, onComplete }: PackRevealProps) {
   const [showFace, setShowFace] = useState(false);
 
   useEffect(() => {
-    if (phase === "revealing") {
-      // Hold on the revealed face briefly, then exit
+    if (phase === "fold-out") {
+      // Fold card closed, then swap to face and fold open
+      const t = setTimeout(() => {
+        setShowFace(true);
+        setPhase("fold-in");
+      }, 200);
+      return () => clearTimeout(t);
+    }
+    if (phase === "fold-in") {
+      // Fold open, then hold briefly, then exit
       const t = setTimeout(() => setPhase("exiting"), 500);
       return () => clearTimeout(t);
     }
@@ -41,12 +49,15 @@ export default function PackReveal({ cards, onComplete }: PackRevealProps) {
 
   function handleClick() {
     if (phase !== "idle") return;
-    setShowFace(true);
-    setPhase("revealing");
+    setPhase("fold-out");
   }
 
   const currentCard = cards[revealed];
   const remaining = cards.length - revealed;
+
+  const flipClass =
+    phase === "fold-out" ? styles.foldOut :
+    phase === "fold-in"  ? styles.foldIn  : "";
 
   return (
     <div className="flex min-h-screen items-center justify-center">
@@ -54,21 +65,17 @@ export default function PackReveal({ cards, onComplete }: PackRevealProps) {
         className="relative"
         style={{ width: "var(--card-width)", height: "var(--card-height)" }}
       >
-        {/* Bottom of stack */}
         {remaining > 2 && (
           <div className={styles.stackCard2} aria-hidden="true">
             <CardBack />
           </div>
         )}
-
-        {/* Middle of stack */}
         {remaining > 1 && (
           <div className={styles.stackCard1} aria-hidden="true">
             <CardBack />
           </div>
         )}
 
-        {/* Top card — fresh node per card, no 3D transforms */}
         <div
           key={revealed}
           className={[
@@ -85,13 +92,11 @@ export default function PackReveal({ cards, onComplete }: PackRevealProps) {
           }}
           aria-label={showFace ? currentCard.taskName : "Tap to reveal card"}
         >
-          {showFace ? (
-            <div className={phase === "revealing" ? styles.cardAppear : ""}>
-              <Card card={currentCard} isComplete={false} />
-            </div>
-          ) : (
-            <CardBack />
-          )}
+          <div className={flipClass}>
+            {showFace
+              ? <Card card={currentCard} isComplete={false} />
+              : <CardBack />}
+          </div>
         </div>
       </div>
     </div>

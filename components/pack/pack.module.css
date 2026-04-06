@@ -159,14 +159,23 @@
   100% { opacity: 0; transform: scale(1.4); }
 }
 
-/* Stacked reveal — no 3D transforms to avoid perspective bleed on siblings */
-.cardAppear {
-  animation: cardAppear 0.28s ease-out forwards;
+/* Stacked reveal — scaleX fold (no 3D/perspective) avoids sibling bleed */
+.foldOut {
+  animation: foldOut 0.2s ease-in forwards;
 }
 
-@keyframes cardAppear {
-  from { transform: scale(0.88); opacity: 0; }
-  to   { transform: scale(1);    opacity: 1; }
+.foldIn {
+  animation: foldIn 0.2s ease-out forwards;
+}
+
+@keyframes foldOut {
+  from { transform: scaleX(1); }
+  to   { transform: scaleX(0); }
+}
+
+@keyframes foldIn {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
 }
 
 
