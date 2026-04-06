@@ -30,16 +30,15 @@ export default function PlayerPackView({
   const progress = cards.length > 0 ? (completedCount / cards.length) * 100 : 0;
 
   function handlePackOpen() {
-    const urls = cards.map((c) => c.artUrl).filter(Boolean);
-    if (urls.length === 0) { setPhase("reveal"); return; }
+    const frameUrls = [...new Set(cards.map((c) => `/frames/${c.rarity}.png`))];
+    const artUrls = cards.map((c) => c.artUrl).filter(Boolean);
+    const urls = ["/card-back.png", ...frameUrls, ...artUrls];
     setPhase("loading");
     let remaining = urls.length;
+    const onDone = () => { if (--remaining === 0) setPhase("reveal"); };
     urls.forEach((url) => {
       const img = new Image();
-      img.onload = img.onerror = () => {
-        remaining--;
-        if (remaining === 0) setPhase("reveal");
-      };
+      img.onload = img.onerror = onDone;
       img.src = url;
     });
   }
