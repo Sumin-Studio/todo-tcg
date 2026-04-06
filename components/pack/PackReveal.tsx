@@ -11,21 +11,23 @@ interface PackRevealProps {
   onComplete: () => void;
 }
 
-type AnimPhase = "idle" | "flipping" | "exiting";
+type AnimPhase = "idle" | "revealing" | "exiting";
 
 export default function PackReveal({ cards, onComplete }: PackRevealProps) {
   const [revealed, setRevealed] = useState(0);
   const [phase, setPhase] = useState<AnimPhase>("idle");
+  const [showFace, setShowFace] = useState(false);
 
   useEffect(() => {
-    if (phase === "flipping") {
-      // After flip completes, start exit
-      const t = setTimeout(() => setPhase("exiting"), 600);
+    if (phase === "revealing") {
+      // Hold on the revealed face briefly, then exit
+      const t = setTimeout(() => setPhase("exiting"), 500);
       return () => clearTimeout(t);
     }
     if (phase === "exiting") {
       const t = setTimeout(() => {
         const next = revealed + 1;
+        setShowFace(false);
         if (next >= cards.length) {
           onComplete();
         } else {
@@ -39,12 +41,12 @@ export default function PackReveal({ cards, onComplete }: PackRevealProps) {
 
   function handleClick() {
     if (phase !== "idle") return;
-    setPhase("flipping");
+    setShowFace(true);
+    setPhase("revealing");
   }
 
   const currentCard = cards[revealed];
   const remaining = cards.length - revealed;
-  const isFlipped = phase === "flipping" || phase === "exiting";
 
   return (
     <div className="flex min-h-screen items-center justify-center">
@@ -66,7 +68,7 @@ export default function PackReveal({ cards, onComplete }: PackRevealProps) {
           </div>
         )}
 
-        {/* Top card — interactive; key on revealed forces fresh DOM node per card */}
+        {/* Top card — fresh node per card, no 3D transforms */}
         <div
           key={revealed}
           className={[
@@ -81,20 +83,15 @@ export default function PackReveal({ cards, onComplete }: PackRevealProps) {
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") handleClick();
           }}
-          aria-label={isFlipped ? currentCard.taskName : "Tap to reveal card"}
+          aria-label={showFace ? currentCard.taskName : "Tap to reveal card"}
         >
-          <div className={styles.flipScene}>
-            <div
-              className={`${styles.flipCard} ${isFlipped ? styles.flipped : ""}`}
-            >
-              <div className={styles.flipFront}>
-                <CardBack />
-              </div>
-              <div className={styles.flipBack}>
-                <Card card={currentCard} isComplete={false} />
-              </div>
+          {showFace ? (
+            <div className={phase === "revealing" ? styles.cardAppear : ""}>
+              <Card card={currentCard} isComplete={false} />
             </div>
-          </div>
+          ) : (
+            <CardBack />
+          )}
         </div>
       </div>
     </div>
