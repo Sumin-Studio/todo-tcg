@@ -193,11 +193,19 @@ export default function GameSetupWizard({
         <div className="flex h-full flex-col gap-6">
           {result ? (
             /* Post-generation: player status panel */
-            <PlayerStatusPanel
-              links={playerLinksWithUrls}
-              completions={completions}
-              cardsPerPack={settings.cardsPerPack}
-            />
+            <>
+              <PlayerStatusPanel
+                links={playerLinksWithUrls}
+                completions={completions}
+                cardsPerPack={settings.cardsPerPack}
+              />
+              <Button
+                onClick={() => setResult(null)}
+                className="w-full px-5 text-sm"
+              >
+                End Game
+              </Button>
+            </>
           ) : (
             /* Pre-generation: setup form */
             <>
