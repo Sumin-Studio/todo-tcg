@@ -12,10 +12,10 @@ interface CardProps {
 
 export default function Card({ card, isComplete, onClick }: CardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
+  const hasHolographicEffect = card.rarity === "rare" || card.rarity === "legendary";
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
-      if (card.rarity !== "legendary") return;
       const el = cardRef.current;
       if (!el) return;
       const rect = el.getBoundingClientRect();
@@ -32,19 +32,15 @@ export default function Card({ card, isComplete, onClick }: CardProps) {
       el.style.setProperty("--mx", mx);
       el.style.setProperty("--my", my);
     },
-    [card.rarity]
+    []
   );
 
   const handleMouseLeave = useCallback(() => {
-    if (card.rarity !== "legendary") return;
     const el = cardRef.current;
     if (!el) return;
     el.style.setProperty("--rotateX", "0deg");
     el.style.setProperty("--rotateY", "0deg");
-  }, [card.rarity]);
-
-  const isLegendary = card.rarity === "legendary";
-  const isRare = card.rarity === "rare";
+  }, []);
 
   return (
     <div
@@ -52,7 +48,7 @@ export default function Card({ card, isComplete, onClick }: CardProps) {
       className={[
         styles.card,
         isComplete ? styles.cardComplete : "",
-        isLegendary ? styles.parallax : "",
+        styles.parallax,
       ]
         .filter(Boolean)
         .join(" ")}
@@ -99,9 +95,15 @@ export default function Card({ card, isComplete, onClick }: CardProps) {
         <span className={styles.flavorText}>{card.flavorText}</span>
       </div>
 
-      {/* z-index 3: FX overlay */}
-      {isRare && <div className={styles.shimmer} aria-hidden="true" />}
-      {isLegendary && <div className={styles.parallaxFx} aria-hidden="true" />}
+      {hasHolographicEffect && (
+        <div
+          className={[
+            styles.holographicLayer,
+            card.rarity === "legendary" ? styles.legendaryHolographic : styles.rareHolographic,
+          ].join(" ")}
+          aria-hidden="true"
+        />
+      )}
 
       {/* z-index 4: Complete stamp */}
       {isComplete && (

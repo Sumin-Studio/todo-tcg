@@ -1,4 +1,4 @@
-/* card.module.css — Card frame effects: shimmer (rare), parallax (legendary) */
+/* Shared card frame effects */
 
 .card {
   position: relative;
@@ -14,8 +14,6 @@
 .cardComplete {
   filter: brightness(0.55) saturate(0.4);
 }
-
-/* ─── Layers ─────────────────────────────────────────────────────────────────── */
 
 .frameLayer {
   position: absolute;
@@ -63,6 +61,97 @@
   overflow: hidden;
 }
 
+.holographicLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  border-radius: var(--card-radius);
+  overflow: hidden;
+  opacity: 0.92;
+  mix-blend-mode: screen;
+}
+
+.holographicLayer::before,
+.holographicLayer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.holographicLayer::before {
+  background:
+    linear-gradient(
+      118deg,
+      transparent 16%,
+      rgba(255, 120, 214, 0.3) 28%,
+      rgba(118, 216, 255, 0.26) 42%,
+      rgba(255, 255, 255, 0.34) 50%,
+      rgba(140, 255, 194, 0.24) 60%,
+      rgba(255, 210, 84, 0.26) 72%,
+      transparent 84%
+    ),
+    radial-gradient(
+      circle at var(--mx, 50%) var(--my, 50%),
+      rgba(255, 255, 255, 0.34) 0%,
+      rgba(255, 255, 255, 0.16) 18%,
+      transparent 48%
+    );
+  background-size: 210% 210%, 100% 100%;
+  background-position: calc(var(--mx, 50%) * 1.1) calc(var(--my, 50%) * 0.9), center;
+}
+
+.holographicLayer::after {
+  background:
+    repeating-linear-gradient(
+      105deg,
+      rgba(255, 255, 255, 0.08) 0 2px,
+      rgba(255, 255, 255, 0) 2px 6px
+    ),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.14),
+      rgba(255, 255, 255, 0.02)
+    );
+  opacity: 0.65;
+}
+
+.rareHolographic::before {
+  background:
+    linear-gradient(
+      118deg,
+      transparent 14%,
+      rgba(255, 255, 255, 0.18) 26%,
+      rgba(214, 229, 255, 0.22) 42%,
+      rgba(255, 255, 255, 0.34) 52%,
+      rgba(207, 221, 235, 0.18) 64%,
+      rgba(255, 255, 255, 0.2) 76%,
+      transparent 88%
+    ),
+    radial-gradient(
+      circle at var(--mx, 50%) var(--my, 50%),
+      rgba(255, 255, 255, 0.28) 0%,
+      rgba(214, 225, 237, 0.14) 20%,
+      transparent 48%
+    );
+  background-size: 210% 210%, 100% 100%;
+  background-position: calc(var(--mx, 50%) * 1.1) calc(var(--my, 50%) * 0.9), center;
+  filter: saturate(0.75) brightness(1.04);
+}
+
+.rareHolographic::after {
+  opacity: 0.42;
+}
+
+.legendaryHolographic::before {
+  filter: saturate(1.35) brightness(1.16);
+}
+
+.legendaryHolographic::after {
+  opacity: 0.72;
+}
+
 .taskName {
   font-size: 15px;
   font-weight: 700;
@@ -92,8 +181,6 @@
   overflow: hidden;
 }
 
-/* ─── Complete stamp overlay ─────────────────────────────────────────────────── */
-
 .completeStamp {
   position: absolute;
   inset: 0;
@@ -117,38 +204,6 @@
   text-shadow: 0 1px 4px rgba(255, 255, 255, 0.4);
 }
 
-/* ─── Rare shimmer ────────────────────────────────────────────────────────────── */
-
-.shimmer {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  pointer-events: none;
-  border-radius: var(--card-radius);
-}
-
-.shimmer::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    105deg,
-    transparent 40%,
-    rgba(255, 255, 255, 0.45) 50%,
-    transparent 60%
-  );
-  background-size: 200% 100%;
-  animation: shimmerSweep 2.5s ease-in-out infinite;
-  border-radius: var(--card-radius);
-}
-
-@keyframes shimmerSweep {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-
-/* ─── Legendary parallax ──────────────────────────────────────────────────────── */
-
 .parallax {
   transform: perspective(600px)
     rotateX(var(--rotateX, 0deg))
@@ -156,24 +211,13 @@
   transition: transform 0.1s ease-out;
 }
 
-.parallaxFx {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  pointer-events: none;
-  border-radius: var(--card-radius);
-  background: radial-gradient(
-    circle at var(--mx, 50%) var(--my, 50%),
-    rgba(245, 158, 11, 0.25) 0%,
-    transparent 70%
-  );
-  transition: background 0.1s ease-out;
-}
-
-/* ─── Reduced motion ──────────────────────────────────────────────────────────── */
-
 @media (prefers-reduced-motion: reduce) {
-  .shimmer::after { animation: none; }
-  .parallax { transform: none; transition: none; }
-  .parallaxFx { display: none; }
+  .parallax {
+    transform: none;
+    transition: none;
+  }
+
+  .holographicLayer::before {
+    background-position: center, center;
+  }
 }

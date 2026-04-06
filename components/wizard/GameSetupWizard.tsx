@@ -137,7 +137,9 @@ export default function GameSetupWizard({
 
   return (
     <div className="grid gap-6 xl:grid-cols-[310px_minmax(0,1fr)]">
-      <aside className="app-panel min-h-[760px] p-5">
+      <aside
+        className={`app-panel self-start p-5 ${result ? "min-h-[760px]" : "h-fit"}`}
+      >
         <div className="flex h-full flex-col gap-6">
           <div className="flex flex-col gap-5">
             <label className="flex flex-col gap-2">
@@ -222,7 +224,7 @@ export default function GameSetupWizard({
 
       <section className="min-h-[760px] overflow-hidden rounded-[25px] px-1 py-1">
         <div className="app-scroll-hidden h-full overflow-y-auto">
-          <div className="flex min-h-full flex-wrap content-start gap-x-20 gap-y-24 px-2 py-3 sm:px-3 sm:py-4 xl:px-4 xl:py-5">
+          <div className="flex min-h-full flex-wrap content-start gap-x-20 gap-y-24 pl-2 pr-0 py-3 sm:pl-3 sm:pr-0 sm:py-4 xl:pl-4 xl:pr-0 xl:py-5">
           {previewCards.map((card, index) => (
             <div
               key={card.id}
