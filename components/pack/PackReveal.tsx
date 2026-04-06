@@ -84,7 +84,7 @@ export default function PackReveal({ cards, onComplete }: PackRevealProps) {
   const showEffect = phase === "revealed" && (rarity === "rare" || rarity === "legendary");
 
   return (
-    <div className="relative flex h-screen items-center justify-center overflow-hidden">
+    <div className="relative flex h-screen items-center justify-center">
 
       {/* Full-screen rarity effect */}
       {showEffect && (
