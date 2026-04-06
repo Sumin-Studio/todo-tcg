@@ -66,8 +66,9 @@ export default function PackReveal({ cards, onComplete }: PackRevealProps) {
           </div>
         )}
 
-        {/* Top card — interactive */}
+        {/* Top card — interactive; key on revealed forces fresh DOM node per card */}
         <div
+          key={revealed}
           className={[
             styles.stackCardTop,
             phase === "exiting" ? styles.stackExiting : "",
