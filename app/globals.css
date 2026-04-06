@@ -17,7 +17,7 @@
   --success-soft: rgba(85, 137, 100, 0.12);
   --danger: #9b4d4d;
   --danger-soft: rgba(155, 77, 77, 0.1);
-  --shadow-panel: inset 0 14px 0 0 rgba(255, 255, 255, 1);
+  --shadow-panel: inset 0 12px 18px -12px rgba(255, 255, 255, 0.98);
   --shadow-button: inset 0 9px 5px rgba(255, 255, 255, 1);
   --shadow-table: 0 3px 0 rgba(78, 78, 78, 0.22), 0 5px 10px rgba(0, 0, 0, 0.08);
   --texture-dot: rgba(32, 32, 32, 0.16);
