@@ -11,7 +11,11 @@ interface PackRevealProps {
   onComplete: () => void;
 }
 
-type AnimPhase = "idle" | "fold-out" | "fold-in" | "exiting";
+// fold-out: card turns edge-on (rotateY 0→90deg)
+// fold-in:  card turns face-forward + grows (rotateY 90→0deg, scale 1→1.2)
+// revealed: card held at 1.2x, waiting for second click
+// exiting:  card slides up off screen
+type AnimPhase = "idle" | "fold-out" | "fold-in" | "revealed" | "exiting";
 
 export default function PackReveal({ cards, onComplete }: PackRevealProps) {
   const [revealed, setRevealed] = useState(0);
@@ -20,16 +24,14 @@ export default function PackReveal({ cards, onComplete }: PackRevealProps) {
 
   useEffect(() => {
     if (phase === "fold-out") {
-      // Fold card closed, then swap to face and fold open
       const t = setTimeout(() => {
         setShowFace(true);
         setPhase("fold-in");
-      }, 200);
+      }, 220);
       return () => clearTimeout(t);
     }
     if (phase === "fold-in") {
-      // Fold open, then hold briefly, then exit
-      const t = setTimeout(() => setPhase("exiting"), 500);
+      const t = setTimeout(() => setPhase("revealed"), 380);
       return () => clearTimeout(t);
     }
     if (phase === "exiting") {
@@ -48,58 +50,66 @@ export default function PackReveal({ cards, onComplete }: PackRevealProps) {
   }, [phase, revealed, cards.length, onComplete]);
 
   function handleClick() {
-    if (phase !== "idle") return;
-    setPhase("fold-out");
+    if (phase === "idle") setPhase("fold-out");
+    else if (phase === "revealed") setPhase("exiting");
   }
 
   const currentCard = cards[revealed];
   const remaining = cards.length - revealed;
 
-  const flipClass =
-    phase === "fold-out" ? styles.foldOut :
-    phase === "fold-in"  ? styles.foldIn  : "";
+  const innerClass =
+    phase === "fold-out" ? styles.turnOut :
+    phase === "fold-in"  ? styles.turnInGrow :
+    (phase === "revealed" || phase === "exiting") ? styles.scaleUp : "";
 
   return (
     <div className="flex min-h-screen items-center justify-center">
       <div style={{ transform: "scale(1.2)", transformOrigin: "center" }}>
-      <div
-        className="relative"
-        style={{ width: "var(--card-width)", height: "var(--card-height)" }}
-      >
-        {remaining > 2 && (
-          <div className={styles.stackCard2} aria-hidden="true">
-            <CardBack />
-          </div>
-        )}
-        {remaining > 1 && (
-          <div className={styles.stackCard1} aria-hidden="true">
-            <CardBack />
-          </div>
-        )}
-
         <div
-          key={revealed}
-          className={[
-            styles.stackCardTop,
-            phase === "exiting" ? styles.stackExiting : "",
-          ]
-            .filter(Boolean)
-            .join(" ")}
-          onClick={handleClick}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") handleClick();
-          }}
-          aria-label={showFace ? currentCard.taskName : "Tap to reveal card"}
+          className="relative"
+          style={{ width: "var(--card-width)", height: "var(--card-height)" }}
         >
-          <div className={flipClass}>
-            {showFace
-              ? <Card card={currentCard} isComplete={false} />
-              : <CardBack />}
+          {remaining > 2 && (
+            <div className={styles.stackCard2} aria-hidden="true">
+              <CardBack />
+            </div>
+          )}
+          {remaining > 1 && (
+            <div className={styles.stackCard1} aria-hidden="true">
+              <CardBack />
+            </div>
+          )}
+
+          <div
+            key={revealed}
+            className={[
+              styles.stackCardTop,
+              phase === "exiting" ? styles.stackExiting : "",
+            ]
+              .filter(Boolean)
+              .join(" ")}
+            onClick={handleClick}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") handleClick();
+            }}
+            aria-label={
+              phase === "idle" ? "Tap to reveal card" :
+              phase === "revealed" ? "Tap to dismiss" :
+              currentCard.taskName
+            }
+          >
+            {/* perspective wrapper — isolated, no preserve-3d, won't bleed onto siblings */}
+            <div className={styles.cardTurnPerspective}>
+              <div className={innerClass}>
+                {showFace
+                  ? <Card card={currentCard} isComplete={false} />
+                  : <CardBack />}
+              </div>
+            </div>
           </div>
         </div>
-      </div>
       </div>
     </div>
   );

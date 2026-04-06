@@ -159,23 +159,31 @@
   100% { opacity: 0; transform: scale(1.4); }
 }
 
-/* Stacked reveal — scaleX fold (no 3D/perspective) avoids sibling bleed */
-.foldOut {
-  animation: foldOut 0.2s ease-in forwards;
+/* Stacked reveal — perspective on an inner wrapper, no preserve-3d, isolated from siblings */
+.cardTurnPerspective {
+  perspective: 700px;
 }
 
-.foldIn {
-  animation: foldIn 0.2s ease-out forwards;
+.turnOut {
+  animation: turnOut 0.22s ease-in forwards;
 }
 
-@keyframes foldOut {
-  from { transform: scaleX(1); }
-  to   { transform: scaleX(0); }
+.turnInGrow {
+  animation: turnInGrow 0.38s cubic-bezier(0.34, 1.36, 0.64, 1) forwards;
 }
 
-@keyframes foldIn {
-  from { transform: scaleX(0); }
-  to   { transform: scaleX(1); }
+.scaleUp {
+  transform: scale(1.2);
+}
+
+@keyframes turnOut {
+  from { transform: rotateY(0deg)   scale(1);   }
+  to   { transform: rotateY(-90deg) scale(0.95); }
+}
+
+@keyframes turnInGrow {
+  from { transform: rotateY(90deg)  scale(0.95); }
+  to   { transform: rotateY(0deg)   scale(1.2);  }
 }
 
 
@@ -212,8 +220,8 @@
 }
 
 @keyframes stackExit {
-  0%   { transform: translateY(0)     scale(1);    opacity: 1; }
-  100% { transform: translateY(-140%) scale(0.92); opacity: 0; }
+  0%   { transform: translateY(0);     opacity: 1; }
+  100% { transform: translateY(-140%); opacity: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
