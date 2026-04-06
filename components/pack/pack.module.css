@@ -7,30 +7,94 @@
   user-select: none;
 }
 
-.pack {
+/* Sized container — both halves are absolute inside here */
+.packScene {
   position: relative;
   width: 180px;
   height: 260px;
+  filter: drop-shadow(0 4px 0 rgba(78, 78, 78, 0.22)) drop-shadow(0 6px 12px rgba(0, 0, 0, 0.12));
+}
+
+/* Shared base for both halves */
+.pack {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    160deg,
+    #c8c8c8 0%,
+    #e8e8e8 18%,
+    #f4f4f4 30%,
+    #b8b8b8 45%,
+    #d8d8d8 58%,
+    #f0f0f0 70%,
+    #c0c0c0 85%,
+    #dcdcdc 100%
+  );
   border-radius: 18px;
-  background: linear-gradient(180deg, #fafafa 0%, #d9d9d9 100%);
-  border: 1px solid #d2d2d2;
-  box-shadow:
-    inset 0 14px 0 rgba(255, 255, 255, 1),
-    0 3px 0 rgba(78, 78, 78, 0.22),
-    0 5px 10px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  overflow: hidden;
+  transform: perspective(600px) rotateX(var(--rotateX, 0deg)) rotateY(var(--rotateY, 0deg));
+  transition: transform 0.1s ease-out;
 }
 
-.pack:hover {
-  transform: translateY(-4px) scale(1.02);
-  box-shadow:
-    inset 0 14px 0 rgba(255, 255, 255, 1),
-    0 5px 0 rgba(78, 78, 78, 0.22),
-    0 10px 16px rgba(0, 0, 0, 0.1);
+/* Clip each half — they share the same gradient so they look like one pack */
+.packHalfTop {
+  clip-path: inset(0 0 78% 0 round 18px 18px 3px 3px);
+}
+
+.packHalfBottom {
+  clip-path: inset(22% 0 0 0 round 3px 3px 18px 18px);
+}
+
+/* Rainbow foil overlay — shifts with mouse position */
+.packFoil {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      115deg,
+      hsl(0, 80%, 65%) 0%,
+      hsl(50, 80%, 65%) 14%,
+      hsl(100, 80%, 65%) 28%,
+      hsl(160, 80%, 65%) 42%,
+      hsl(210, 80%, 65%) 56%,
+      hsl(260, 80%, 65%) 70%,
+      hsl(310, 80%, 65%) 84%,
+      hsl(360, 80%, 65%) 100%
+    ),
+    radial-gradient(
+      circle at var(--mx, 50%) var(--my, 50%),
+      rgba(255, 255, 255, 0.28) 0%,
+      transparent 55%
+    );
+  background-size: 300% 300%, 100% 100%;
+  background-position: calc(var(--mx, 50%) * 2.5) calc(var(--my, 50%) * 2.5), center;
+  mix-blend-mode: color;
+  opacity: 0.52;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.packSheen {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.38) 50%,
+    transparent 70%
+  );
+  background-size: 200% 200%;
+  animation: sheenMove 3s ease-in-out infinite;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+@keyframes sheenMove {
+  0% { background-position: 200% 200%; }
+  100% { background-position: -200% -200%; }
 }
 
 .packInner {
@@ -40,54 +104,39 @@
   gap: 10px;
   z-index: 1;
   padding: 0 18px;
+  /* offset downward to sit in the main body, clear of the tear strip */
+  margin-top: 40px;
 }
 
 .packTitle {
   font-size: 11px;
   letter-spacing: 0.15em;
-  color: rgba(32, 32, 32, 0.48);
+  color: rgba(32, 32, 32, 0.52);
   text-transform: uppercase;
 }
 
 .packName {
   font-size: 20px;
   line-height: 0.95;
-  color: #535353;
+  color: #444;
   text-align: center;
   font-family: var(--font-title), monospace;
 }
 
-.packSheen {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    135deg,
-    transparent 30%,
-    rgba(255, 255, 255, 0.55) 50%,
-    transparent 70%
-  );
-  background-size: 200% 200%;
-  animation: sheenMove 3s ease-in-out infinite;
-}
-
-@keyframes sheenMove {
-  0% { background-position: 200% 200%; }
-  100% { background-position: -200% -200%; }
-}
-
 .tearLine {
   position: absolute;
-  top: 34px;
-  left: 14px;
-  right: 14px;
+  top: 57px;   /* 22% of 260px — aligns with the clip boundary */
+  left: 10px;
+  right: 10px;
   height: 2px;
   background: repeating-linear-gradient(
     90deg,
-    rgba(32, 32, 32, 0.18) 0px,
-    rgba(32, 32, 32, 0.18) 4px,
+    rgba(32, 32, 32, 0.22) 0px,
+    rgba(32, 32, 32, 0.22) 4px,
     transparent 4px,
     transparent 8px
   );
+  z-index: 2;
 }
 
 .packTapHint {
@@ -96,14 +145,27 @@
   text-align: center;
 }
 
-.packTearing {
-  animation: packTear 0.4s ease-in forwards;
+/* Two-piece tear animation */
+.tearTop {
+  animation: packTearTop 0.55s cubic-bezier(0.4, 0, 1, 1) forwards;
+  pointer-events: none;
 }
 
-@keyframes packTear {
-  0% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.05) rotate(-2deg); opacity: 0.8; }
-  100% { transform: scale(0) rotate(8deg); opacity: 0; }
+.tearBottom {
+  animation: packTearBottom 0.55s cubic-bezier(0.4, 0, 1, 1) forwards;
+  pointer-events: none;
+}
+
+@keyframes packTearTop {
+  0%   { transform: perspective(600px) rotateX(0deg)   rotateY(var(--rotateY, 0deg)) translateY(0)      rotateZ(0deg);   opacity: 1; }
+  25%  { transform: perspective(600px) rotateX(-6deg)  rotateY(var(--rotateY, 0deg)) translateY(-10px)  rotateZ(-2deg);  opacity: 1; }
+  100% { transform: perspective(600px) rotateX(-18deg) rotateY(var(--rotateY, 0deg)) translateY(-200%)  rotateZ(-14deg); opacity: 0; }
+}
+
+@keyframes packTearBottom {
+  0%   { transform: perspective(600px) rotateX(0deg) rotateY(var(--rotateY, 0deg)) translateY(0)    scale(1);    opacity: 1; }
+  25%  { transform: perspective(600px) rotateX(3deg) rotateY(var(--rotateY, 0deg)) translateY(6px)  scale(0.99); opacity: 1; }
+  100% { transform: perspective(600px) rotateX(10deg) rotateY(var(--rotateY, 0deg)) translateY(70px) scale(0.88); opacity: 0; }
 }
 
 .flipScene {
@@ -308,7 +370,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .packSheen { animation: none; }
-  .packTearing { animation: none; opacity: 0; }
+  .tearTop, .tearBottom { animation: none; opacity: 0; }
   .flipCard { transition: none; }
   .burst { animation: none; display: none; }
   .stackExiting { animation: none; opacity: 0; }
