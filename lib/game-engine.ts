@@ -22,6 +22,15 @@ export function validateSettings(
   if (settings.playerCount < 1) {
     return { success: false, error: new Error("At least one player is required") };
   }
+  const totalNeeded = settings.playerCount * settings.cardsPerPack;
+  if (totalNeeded > cardPool.length) {
+    return {
+      success: false,
+      error: new Error(
+        `Not enough cards: ${settings.playerCount} players × ${settings.cardsPerPack} cards = ${totalNeeded} needed, but only ${cardPool.length} cards in pool`
+      ),
+    };
+  }
   return { success: true, data: true };
 }
 
@@ -45,8 +54,7 @@ export function dealPacks(
   for (let i = 0; i < playerCount; i++) {
     const cards: Card[] = [];
     for (let j = 0; j < cardsPerPack; j++) {
-      // Cycle through the pool if there aren't enough unique cards
-      cards.push(shuffledPool[poolIndex % shuffledPool.length]);
+      cards.push(shuffledPool[poolIndex]);
       poolIndex++;
     }
     players.push({

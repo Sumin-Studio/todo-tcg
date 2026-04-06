@@ -8,7 +8,7 @@ import CardGrid from "@/components/cards/CardGrid";
 import ProgressBar from "@/components/ui/ProgressBar";
 import { useCompletions } from "@/hooks/useCompletions";
 
-type Phase = "pack" | "reveal" | "deck";
+type Phase = "pack" | "loading" | "reveal" | "deck";
 
 interface PlayerPackViewProps {
   gameId: string;
@@ -29,17 +29,37 @@ export default function PlayerPackView({
   const completedCount = cards.filter((c) => completedIds.has(c.id)).length;
   const progress = cards.length > 0 ? (completedCount / cards.length) * 100 : 0;
 
+  function handlePackOpen() {
+    const urls = cards.map((c) => c.artUrl).filter(Boolean);
+    if (urls.length === 0) { setPhase("reveal"); return; }
+    setPhase("loading");
+    let remaining = urls.length;
+    urls.forEach((url) => {
+      const img = new Image();
+      img.onload = img.onerror = () => {
+        remaining--;
+        if (remaining === 0) setPhase("reveal");
+      };
+      img.src = url;
+    });
+  }
+
+  if (phase === "reveal") {
+    return <PackReveal cards={cards} onComplete={() => setPhase("deck")} />;
+  }
+
   return (
     <div className="flex min-h-screen flex-col gap-6 px-4 py-8 sm:px-6 sm:py-10">
-      {phase === "pack" && (
-        <div className="flex flex-1 items-center justify-center">
+      {(phase === "pack" || phase === "loading") && (
+        <div className="flex flex-1 flex-col items-center justify-center gap-4">
           <div style={{ transform: "scale(1.5)", transformOrigin: "center" }}>
-            <BoosterPack gameTitle={gameTitle} onOpen={() => setPhase("reveal")} />
+            <BoosterPack gameTitle={gameTitle} onOpen={handlePackOpen} />
           </div>
+          {phase === "loading" && (
+            <p className="text-sm text-[rgba(32,32,32,0.45)] mt-8">Loading cards...</p>
+          )}
         </div>
       )}
-
-      {phase === "reveal" && <PackReveal cards={cards} onComplete={() => setPhase("deck")} />}
 
       {phase === "deck" && (
         <div className="app-panel flex flex-col gap-6 p-5 sm:p-6">

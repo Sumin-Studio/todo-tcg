@@ -98,7 +98,16 @@ export default function GameSetupWizard({
   }
 
   function canGenerate() {
-    return tasks.length > 0 && settings.playerCount > 0;
+    if (tasks.length === 0 || settings.playerCount < 1) return false;
+    return tasks.length >= settings.playerCount * settings.cardsPerPack;
+  }
+
+  function generateHint() {
+    const needed = settings.playerCount * settings.cardsPerPack;
+    if (tasks.length < needed) {
+      return `Need ${needed} cards for ${settings.playerCount} players × ${settings.cardsPerPack} per pack (have ${tasks.length})`;
+    }
+    return null;
   }
 
   function addTask() {
@@ -271,6 +280,10 @@ export default function GameSetupWizard({
                   {generating ? "Creating..." : "Play →"}
                 </Button>
               </div>
+
+              {generateHint() && !genError && (
+                <p className="text-xs text-[rgba(32,32,32,0.45)]">{generateHint()}</p>
+              )}
 
               {genError && (
                 <div className="rounded-[18px] border border-[rgba(155,77,77,0.22)] bg-[var(--danger-soft)] px-4 py-3 text-sm text-[var(--danger)]">

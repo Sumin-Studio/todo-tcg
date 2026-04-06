@@ -22,6 +22,20 @@ export default function PackReveal({ cards, onComplete }: PackRevealProps) {
   const [phase, setPhase] = useState<AnimPhase>("idle");
   const [showFace, setShowFace] = useState(false);
 
+  // Lock scroll — iOS Safari ignores overflow:hidden; position:fixed is the only reliable fix
+  useEffect(() => {
+    const scrollY = window.scrollY;
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = "100%";
+    return () => {
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.width = "";
+      window.scrollTo(0, scrollY);
+    };
+  }, []);
+
   useEffect(() => {
     if (phase === "fold-out") {
       const t = setTimeout(() => {
@@ -63,7 +77,7 @@ export default function PackReveal({ cards, onComplete }: PackRevealProps) {
     (phase === "revealed" || phase === "exiting") ? styles.scaleUp : "";
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
+    <div className="flex h-screen items-center justify-center overflow-hidden">
         <div
           className="relative"
           style={{ width: "var(--card-width)", height: "var(--card-height)" }}

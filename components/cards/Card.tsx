@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useCallback } from "react";
+import { useRef, useCallback, useEffect } from "react";
 import type { Card as CardType } from "@/lib/types";
 import styles from "./card.module.css";
 
@@ -10,45 +10,79 @@ interface CardProps {
   onClick?: () => void;
 }
 
+function clamp(v: number, min: number, max: number) {
+  return Math.min(Math.max(v, min), max);
+}
+
 export default function Card({ card, isComplete, onClick }: CardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
   const hasHolographicEffect = card.rarity === "rare" || card.rarity === "legendary";
 
-  function applyTilt(clientX: number, clientY: number) {
+  // Desktop: position-relative parallax
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const el = cardRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
-    const x = clientX - rect.left;
-    const y = clientY - rect.top;
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
     const cx = rect.width / 2;
     const cy = rect.height / 2;
     el.style.setProperty("--rotateY", `${((x - cx) / cx) * 10}deg`);
     el.style.setProperty("--rotateX", `${-((y - cy) / cy) * 10}deg`);
     el.style.setProperty("--mx", `${((x / rect.width) * 100).toFixed(1)}%`);
     el.style.setProperty("--my", `${((y / rect.height) * 100).toFixed(1)}%`);
-  }
+  }, []);
 
-  function resetTilt() {
+  const resetTilt = useCallback(() => {
     const el = cardRef.current;
     if (!el) return;
     el.style.setProperty("--rotateX", "0deg");
     el.style.setProperty("--rotateY", "0deg");
-  }
+  }, []);
 
-  const handleMouseMove = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>) => applyTilt(e.clientX, e.clientY),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
-  );
+  // Mobile: delta-from-start drag parallax, non-passive to block page scroll
+  useEffect(() => {
+    const el = cardRef.current;
+    if (!el) return;
 
-  const handleTouchMove = useCallback(
-    (e: React.TouchEvent<HTMLDivElement>) => {
-      const touch = e.touches[0];
-      if (touch) applyTilt(touch.clientX, touch.clientY);
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
-  );
+    function onTouchStart(e: TouchEvent) {
+      const t = e.touches[0];
+      if (t) touchStart.current = { x: t.clientX, y: t.clientY };
+    }
+
+    function onTouchMove(e: TouchEvent) {
+      e.preventDefault(); // stop page scroll — requires non-passive listener
+      const t = e.touches[0];
+      if (!t || !touchStart.current) return;
+      const dx = t.clientX - touchStart.current.x;
+      const dy = t.clientY - touchStart.current.y;
+      // ±120px drag → ±20deg tilt
+      const rotateY = clamp((dx / 120) * 20, -20, 20);
+      const rotateX = clamp((-dy / 120) * 20, -20, 20);
+      const mx = clamp(50 + (dx / 120) * 50, 0, 100).toFixed(1) + "%";
+      const my = clamp(50 + (dy / 120) * 50, 0, 100).toFixed(1) + "%";
+      el.style.setProperty("--rotateY", `${rotateY}deg`);
+      el.style.setProperty("--rotateX", `${rotateX}deg`);
+      el.style.setProperty("--mx", mx);
+      el.style.setProperty("--my", my);
+    }
+
+    function onTouchEnd() {
+      touchStart.current = null;
+      el.style.setProperty("--rotateX", "0deg");
+      el.style.setProperty("--rotateY", "0deg");
+    }
+
+    el.addEventListener("touchstart", onTouchStart, { passive: true });
+    el.addEventListener("touchmove", onTouchMove, { passive: false });
+    el.addEventListener("touchend", onTouchEnd);
+    return () => {
+      el.removeEventListener("touchstart", onTouchStart);
+      el.removeEventListener("touchmove", onTouchMove);
+      el.removeEventListener("touchend", onTouchEnd);
+    };
+  }, []);
 
   return (
     <div
@@ -62,8 +96,6 @@ export default function Card({ card, isComplete, onClick }: CardProps) {
         .join(" ")}
       onMouseMove={handleMouseMove}
       onMouseLeave={resetTilt}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={resetTilt}
       onClick={onClick}
       role={onClick ? "button" : undefined}
       tabIndex={onClick ? 0 : undefined}
