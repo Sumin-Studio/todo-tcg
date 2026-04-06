@@ -62,19 +62,17 @@ export async function updateGamePlayers(
 export async function insertCompletion(
   supabase: SupabaseClient,
   completion: Omit<Completion, "id" | "completedAt">
-): Promise<Result<Completion>> {
-  const { data, error } = await supabase
+): Promise<Result<true>> {
+  const { error } = await supabase
     .from("completions")
     .insert({
       game_id: completion.gameId,
       player_id: completion.playerId,
       card_id: completion.cardId,
-    })
-    .select()
-    .single();
+    });
 
   if (error) return { success: false, error: new Error(error.message) };
-  return { success: true, data: rowToCompletion(data) };
+  return { success: true, data: true };
 }
 
 export async function getCompletions(

@@ -32,6 +32,7 @@ export function useCompletions({ gameId, playerId }: UseCompletionsOptions) {
       const result = await insertCompletion(supabase, { gameId, playerId, cardId });
 
       if (!result.success) {
+        console.error("Failed to mark complete:", result.error.message);
         // Roll back on failure
         setCompletedIds((prev) => {
           const next = new Set(prev);
