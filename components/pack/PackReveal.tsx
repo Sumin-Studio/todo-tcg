@@ -69,21 +69,19 @@ export default function PackReveal({ cards, onComplete }: PackRevealProps) {
           className="relative"
           style={{ width: "var(--card-width)", height: "var(--card-height)" }}
         >
-          {remaining > 2 && (
-            <div className={styles.stackCard2} aria-hidden="true">
-              <CardBack />
-            </div>
-          )}
-          {remaining > 1 && (
-            <div className={styles.stackCard1} aria-hidden="true">
-              <CardBack />
-            </div>
-          )}
+          {/* Always rendered — opacity fades when no longer needed */}
+          <div className={styles.stackCard2} style={{ opacity: remaining > 2 ? 1 : 0 }} aria-hidden="true">
+            <CardBack />
+          </div>
+          <div className={styles.stackCard1} style={{ opacity: remaining > 1 ? 1 : 0 }} aria-hidden="true">
+            <CardBack />
+          </div>
 
           <div
             key={revealed}
             className={[
               styles.stackCardTop,
+              revealed > 0 ? styles.stackPromote : "",
               phase === "exiting" ? styles.stackExiting : "",
             ]
               .filter(Boolean)
