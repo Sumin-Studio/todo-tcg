@@ -64,7 +64,6 @@ export default function PackReveal({ cards, onComplete }: PackRevealProps) {
 
   return (
     <div className="flex min-h-screen items-center justify-center">
-      <div style={{ transform: "scale(1.2)", transformOrigin: "center" }}>
         <div
           className="relative"
           style={{ width: "var(--card-width)", height: "var(--card-height)" }}
@@ -108,7 +107,6 @@ export default function PackReveal({ cards, onComplete }: PackRevealProps) {
             </div>
           </div>
         </div>
-      </div>
     </div>
   );
 }
