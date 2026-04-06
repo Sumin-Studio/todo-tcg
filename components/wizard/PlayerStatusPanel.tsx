@@ -63,12 +63,22 @@ export default function PlayerStatusPanel({
               })}
             </div>
 
-            {/* Copy button */}
+            {/* Copy icon button */}
             <button
               onClick={() => copy(link.url, link.playerId)}
-              className="app-button shrink-0 px-4 py-1.5 text-xs"
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[var(--border)] bg-white/92 text-[rgba(32,32,32,0.62)] shadow-[0_2px_6px_rgba(0,0,0,0.06)] transition-colors hover:text-[rgba(32,32,32,0.9)]"
+              aria-label={`Copy link for ${link.name}`}
             >
-              {copied === link.playerId ? "Copied" : "Copy"}
+              {copied === link.playerId ? (
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M2 7l3 3 6-6" />
+                </svg>
+              ) : (
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="4.5" y="4.5" width="7" height="7" rx="1.5" />
+                  <path d="M2.5 8.5H2A1.5 1.5 0 0 1 .5 7V2A1.5 1.5 0 0 1 2 .5h5A1.5 1.5 0 0 1 8.5 2v.5" />
+                </svg>
+              )}
             </button>
           </div>
         );
