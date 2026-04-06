@@ -20,7 +20,7 @@ export default async function PlayPage({ params }: Props) {
   if (!player) notFound();
 
   return (
-    <main className="min-h-screen px-4 py-8 sm:px-6 sm:py-10">
+    <main className="min-h-screen">
       <PlayerPackView
         gameId={gameId}
         playerId={playerId}

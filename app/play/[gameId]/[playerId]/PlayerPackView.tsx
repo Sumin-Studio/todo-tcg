@@ -30,22 +30,12 @@ export default function PlayerPackView({
   const progress = cards.length > 0 ? (completedCount / cards.length) * 100 : 0;
 
   return (
-    <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-6xl flex-col gap-6">
-      <header className="app-panel p-5 sm:p-6">
-        <p className="app-kicker">Player View</p>
-        <h1 className="app-title mt-2 text-4xl leading-[0.84] tracking-[-0.07em]">
-          {gameTitle}
-        </h1>
-        <p className="mt-3 text-sm text-[rgba(32,32,32,0.62)]">
-          {phase === "deck"
-            ? "Tap a card to mark it complete."
-            : "Open your pack, reveal each card, then work through the deck."}
-        </p>
-      </header>
-
+    <div className="flex min-h-screen flex-col gap-6 px-4 py-8 sm:px-6 sm:py-10">
       {phase === "pack" && (
-        <div className="app-panel flex flex-1 items-center justify-center p-8">
-          <BoosterPack gameTitle={gameTitle} onOpen={() => setPhase("reveal")} />
+        <div className="flex flex-1 items-center justify-center">
+          <div style={{ transform: "scale(1.5)", transformOrigin: "center" }}>
+            <BoosterPack gameTitle={gameTitle} onOpen={() => setPhase("reveal")} />
+          </div>
         </div>
       )}
 
