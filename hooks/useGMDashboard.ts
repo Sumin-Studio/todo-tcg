@@ -14,6 +14,10 @@ export function useGMDashboard({ gameId }: UseGMDashboardOptions) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!gameId) {
+      setLoading(false);
+      return;
+    }
     const supabase = getSupabaseClient();
 
     // Initial fetch
