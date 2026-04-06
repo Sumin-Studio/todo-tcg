@@ -1,10 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Card as CardType } from "@/lib/types";
 import Card from "@/components/cards/Card";
 import CardBack from "@/components/cards/CardBack";
-import Button from "@/components/ui/Button";
 import styles from "./pack.module.css";
 
 interface PackRevealProps {
@@ -12,58 +11,91 @@ interface PackRevealProps {
   onComplete: () => void;
 }
 
+type AnimPhase = "idle" | "flipping" | "exiting";
+
 export default function PackReveal({ cards, onComplete }: PackRevealProps) {
-  const [flippedIndexes, setFlippedIndexes] = useState<Set<number>>(new Set());
-  const [showBurst, setShowBurst] = useState<number | null>(null);
+  const [revealed, setRevealed] = useState(0);
+  const [phase, setPhase] = useState<AnimPhase>("idle");
 
-  const allFlipped = flippedIndexes.size === cards.length;
+  useEffect(() => {
+    if (phase === "flipping") {
+      // After flip completes, start exit
+      const t = setTimeout(() => setPhase("exiting"), 600);
+      return () => clearTimeout(t);
+    }
+    if (phase === "exiting") {
+      const t = setTimeout(() => {
+        const next = revealed + 1;
+        if (next >= cards.length) {
+          onComplete();
+        } else {
+          setRevealed(next);
+          setPhase("idle");
+        }
+      }, 450);
+      return () => clearTimeout(t);
+    }
+  }, [phase, revealed, cards.length, onComplete]);
 
-  function flipCard(index: number) {
-    if (flippedIndexes.has(index)) return;
-    setFlippedIndexes((prev) => new Set([...prev, index]));
-    setShowBurst(index);
-    setTimeout(() => setShowBurst(null), 600);
+  function handleClick() {
+    if (phase !== "idle") return;
+    setPhase("flipping");
   }
 
+  const currentCard = cards[revealed];
+  const remaining = cards.length - revealed;
+  const isFlipped = phase === "flipping" || phase === "exiting";
+
   return (
-    <div className="flex flex-col items-center gap-8 rounded-[28px] border border-[var(--border)] bg-white/45 px-4 py-6 sm:px-6">
-      <p className="text-center text-sm text-[rgba(32,32,32,0.62)]">
-        {allFlipped
-          ? "All cards revealed."
-          : `Tap cards to reveal (${flippedIndexes.size}/${cards.length})`}
-      </p>
+    <div className="flex min-h-screen items-center justify-center">
+      <div
+        className="relative"
+        style={{ width: "var(--card-width)", height: "var(--card-height)" }}
+      >
+        {/* Bottom of stack */}
+        {remaining > 2 && (
+          <div className={styles.stackCard2} aria-hidden="true">
+            <CardBack />
+          </div>
+        )}
 
-      <div className="flex flex-wrap justify-center gap-4">
-        {cards.map((card, i) => {
-          const isFlipped = flippedIndexes.has(i);
-          return (
-            <div key={card.id} className={styles.burstContainer}>
-              <div
-                className={styles.flipScene}
-                onClick={() => flipCard(i)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") flipCard(i);
-                }}
-                role="button"
-                tabIndex={0}
-                aria-label={isFlipped ? card.taskName : "Hidden card — tap to reveal"}
-              >
-                <div className={`${styles.flipCard} ${isFlipped ? styles.flipped : ""}`}>
-                  <div className={styles.flipFront}>
-                    <CardBack />
-                  </div>
-                  <div className={styles.flipBack}>
-                    <Card card={card} isComplete={false} />
-                  </div>
-                </div>
+        {/* Middle of stack */}
+        {remaining > 1 && (
+          <div className={styles.stackCard1} aria-hidden="true">
+            <CardBack />
+          </div>
+        )}
+
+        {/* Top card — interactive */}
+        <div
+          className={[
+            styles.stackCardTop,
+            phase === "exiting" ? styles.stackExiting : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
+          onClick={handleClick}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") handleClick();
+          }}
+          aria-label={isFlipped ? currentCard.taskName : "Tap to reveal card"}
+        >
+          <div className={styles.flipScene}>
+            <div
+              className={`${styles.flipCard} ${isFlipped ? styles.flipped : ""}`}
+            >
+              <div className={styles.flipFront}>
+                <CardBack />
               </div>
-              {showBurst === i && <div className={styles.burst} aria-hidden="true" />}
+              <div className={styles.flipBack}>
+                <Card card={currentCard} isComplete={false} />
+              </div>
             </div>
-          );
-        })}
+          </div>
+        </div>
       </div>
-
-      {allFlipped && <Button onClick={onComplete}>View My Deck →</Button>}
     </div>
   );
 }

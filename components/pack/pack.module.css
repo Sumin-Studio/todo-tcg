@@ -159,9 +159,48 @@
   100% { opacity: 0; transform: scale(1.4); }
 }
 
+/* Stacked reveal */
+.stackCard2 {
+  position: absolute;
+  inset: 0;
+  transform: translateY(10px) scale(0.93);
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.stackCard1 {
+  position: absolute;
+  inset: 0;
+  transform: translateY(5px) scale(0.965);
+  opacity: 0.68;
+  pointer-events: none;
+}
+
+.stackCardTop {
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+  transition: transform 0.18s ease;
+}
+
+.stackCardTop:hover {
+  transform: translateY(-6px);
+}
+
+.stackExiting {
+  animation: stackExit 0.45s ease-in forwards;
+  pointer-events: none;
+}
+
+@keyframes stackExit {
+  0%   { transform: translateY(0)     scale(1);    opacity: 1; }
+  100% { transform: translateY(-140%) scale(0.92); opacity: 0; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .packSheen { animation: none; }
   .packTearing { animation: none; opacity: 0; }
   .flipCard { transition: none; }
   .burst { animation: none; display: none; }
+  .stackExiting { animation: none; opacity: 0; }
 }
