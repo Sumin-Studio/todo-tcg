@@ -49,9 +49,21 @@ export default function PackReveal({ cards, onComplete }: PackRevealProps) {
     }
   }, [phase, revealed, cards.length, onComplete]);
 
-  function handleClick() {
-    if (phase === "idle") setPhase("fold-out");
-    else if (phase === "revealed") setPhase("exiting");
+  async function handleClick() {
+    if (phase === "idle") {
+      // Request iOS motion permission on first user tap (must be in gesture handler)
+      if (
+        typeof DeviceOrientationEvent !== "undefined" &&
+        typeof (DeviceOrientationEvent as unknown as { requestPermission?: () => Promise<string> }).requestPermission === "function"
+      ) {
+        try {
+          await (DeviceOrientationEvent as unknown as { requestPermission: () => Promise<string> }).requestPermission();
+        } catch {}
+      }
+      setPhase("fold-out");
+    } else if (phase === "revealed") {
+      setPhase("exiting");
+    }
   }
 
   const currentCard = cards[revealed];
@@ -101,7 +113,7 @@ export default function PackReveal({ cards, onComplete }: PackRevealProps) {
             <div className={styles.cardTurnPerspective}>
               <div className={innerClass}>
                 {showFace
-                  ? <Card card={currentCard} isComplete={false} />
+                  ? <Card card={currentCard} isComplete={false} orientationActive={phase === "revealed"} />
                   : <CardBack />}
               </div>
             </div>

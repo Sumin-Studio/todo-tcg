@@ -1,19 +1,26 @@
 "use client";
 
-import { useRef, useCallback } from "react";
+import { useRef, useCallback, useEffect } from "react";
 import type { Card as CardType } from "@/lib/types";
 import styles from "./card.module.css";
+import { useDeviceOrientation } from "@/hooks/useDeviceOrientation";
 
 interface CardProps {
   card: CardType;
   isComplete: boolean;
   onClick?: () => void;
+  orientationActive?: boolean;
 }
 
-export default function Card({ card, isComplete, onClick }: CardProps) {
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
+}
+
+export default function Card({ card, isComplete, onClick, orientationActive = false }: CardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const hasHolographicEffect = card.rarity === "rare" || card.rarity === "legendary";
 
+  // Desktop: mouse-driven parallax
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
       const el = cardRef.current;
@@ -41,6 +48,33 @@ export default function Card({ card, isComplete, onClick }: CardProps) {
     el.style.setProperty("--rotateX", "0deg");
     el.style.setProperty("--rotateY", "0deg");
   }, []);
+
+  // Mobile: device-orientation-driven parallax — drives the same CSS vars
+  useDeviceOrientation(
+    useCallback((gamma: number, beta: number) => {
+      const el = cardRef.current;
+      if (!el) return;
+      const rotateY = clamp(gamma * 0.33, -10, 10);
+      const rotateX = clamp((beta - 55) * 0.22, -10, 10);
+      const mx = ((gamma + 60) / 120 * 100).toFixed(1) + "%";
+      const my = (clamp((beta - 25) / 60, 0, 1) * 100).toFixed(1) + "%";
+      el.style.setProperty("--rotateX", `${rotateX}deg`);
+      el.style.setProperty("--rotateY", `${rotateY}deg`);
+      el.style.setProperty("--mx", mx);
+      el.style.setProperty("--my", my);
+    }, []),
+    orientationActive
+  );
+
+  // Reset CSS vars when orientation becomes inactive
+  useEffect(() => {
+    if (!orientationActive) {
+      const el = cardRef.current;
+      if (!el) return;
+      el.style.setProperty("--rotateX", "0deg");
+      el.style.setProperty("--rotateY", "0deg");
+    }
+  }, [orientationActive]);
 
   return (
     <div
