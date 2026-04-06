@@ -20,7 +20,7 @@ export default async function PlayPage({ params }: Props) {
   if (!player) notFound();
 
   return (
-    <main className="h-screen overflow-hidden">
+    <main>
       <PlayerPackView
         gameId={gameId}
         playerId={playerId}
