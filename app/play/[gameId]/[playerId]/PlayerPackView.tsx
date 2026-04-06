@@ -24,7 +24,7 @@ export default function PlayerPackView({
   cards,
 }: PlayerPackViewProps) {
   const [phase, setPhase] = useState<Phase>("pack");
-  const { completedIds, markComplete, loading } = useCompletions({ gameId, playerId });
+  const { completedIds, markComplete, loading, lastError } = useCompletions({ gameId, playerId });
 
   const completedCount = cards.filter((c) => completedIds.has(c.id)).length;
   const progress = cards.length > 0 ? (completedCount / cards.length) * 100 : 0;
@@ -67,6 +67,11 @@ export default function PlayerPackView({
             value={progress}
             label={`${completedCount} / ${cards.length} complete`}
           />
+          {lastError && (
+            <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600 font-mono break-all">
+              Error: {lastError}
+            </p>
+          )}
           {loading ? (
             <p className="text-sm text-[rgba(32,32,32,0.54)]">Loading...</p>
           ) : (

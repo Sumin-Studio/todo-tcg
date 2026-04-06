@@ -12,6 +12,7 @@ interface UseCompletionsOptions {
 export function useCompletions({ gameId, playerId }: UseCompletionsOptions) {
   const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [lastError, setLastError] = useState<string | null>(null);
 
   useEffect(() => {
     const supabase = getSupabaseClient();
@@ -33,6 +34,7 @@ export function useCompletions({ gameId, playerId }: UseCompletionsOptions) {
 
       if (!result.success) {
         console.error("Failed to mark complete:", result.error.message);
+        setLastError(result.error.message);
         // Roll back on failure
         setCompletedIds((prev) => {
           const next = new Set(prev);
@@ -44,5 +46,5 @@ export function useCompletions({ gameId, playerId }: UseCompletionsOptions) {
     [gameId, playerId]
   );
 
-  return { completedIds, markComplete, loading };
+  return { completedIds, markComplete, loading, lastError };
 }
