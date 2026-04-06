@@ -31,6 +31,7 @@ interface GameSetupWizardProps {
 }
 
 const RARITIES: Rarity[] = ["common", "rare", "legendary"];
+const PREVIEW_CARD_SCALE = 0.94 * 1.5 * 0.8;
 
 export default function GameSetupWizard({
   initialState,
@@ -220,12 +221,16 @@ export default function GameSetupWizard({
       </aside>
 
       <section className="min-h-[760px] overflow-hidden rounded-[25px] px-1 py-1">
-        <div className="app-scroll h-full overflow-y-auto">
-          <div className="flex min-h-full flex-wrap content-start gap-x-10 gap-y-12 px-2 py-3 sm:px-3 sm:py-4 xl:px-4 xl:py-5">
+        <div className="app-scroll-hidden h-full overflow-y-auto">
+          <div className="flex min-h-full flex-wrap content-start gap-x-20 gap-y-24 px-2 py-3 sm:px-3 sm:py-4 xl:px-4 xl:py-5">
           {previewCards.map((card, index) => (
             <div
               key={card.id}
-              className={`group relative origin-top-left ${index % 2 === 0 ? "scale-[0.94] rotate-[-0.75deg]" : "scale-[0.94] rotate-[0.8deg]"}`}
+              className="group relative"
+              style={{
+                width: `calc(var(--card-width) * ${PREVIEW_CARD_SCALE})`,
+                height: `calc(var(--card-height) * ${PREVIEW_CARD_SCALE})`,
+              }}
               onMouseEnter={() => setActiveCardIndex(index)}
               onMouseLeave={() =>
                 setActiveCardIndex((current) => (current === index ? null : current))
@@ -233,12 +238,19 @@ export default function GameSetupWizard({
             >
               <button
                 type="button"
-                className="block rounded-[18px]"
+                className="block h-full w-full rounded-[18px]"
                 onClick={() =>
                   setActiveCardIndex((current) => (current === index ? null : index))
                 }
               >
-                <Card card={card} isComplete={false} />
+                <div
+                  className="origin-top-left"
+                  style={{
+                    transform: `scale(${PREVIEW_CARD_SCALE}) rotate(${index % 2 === 0 ? "-0.75deg" : "0.8deg"})`,
+                  }}
+                >
+                  <Card card={card} isComplete={false} />
+                </div>
               </button>
 
               <div

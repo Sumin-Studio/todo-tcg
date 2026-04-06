@@ -250,6 +250,15 @@ a {
   border-radius: 999px;
 }
 
+.app-scroll-hidden {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.app-scroll-hidden::-webkit-scrollbar {
+  display: none;
+}
+
 @media (max-width: 640px) {
   .app-button {
     min-height: 52px;
