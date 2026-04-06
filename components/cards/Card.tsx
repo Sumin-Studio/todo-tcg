@@ -91,8 +91,6 @@ export default function Card({ card, isComplete, onClick }: CardProps) {
       {/* z-index 2: Text */}
       <div className={styles.textLayer}>
         <span className={styles.taskName}>{card.taskName}</span>
-        <div className={styles.divider} />
-        <span className={styles.flavorText}>{card.flavorText}</span>
       </div>
 
       {hasHolographicEffect && (

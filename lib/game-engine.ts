@@ -16,51 +16,12 @@ export function validateSettings(
   cardPool: Card[],
   settings: PackSettings
 ): Result<true> {
-  const { playerCount, cardsPerPack, rarityDistribution, allowDuplicates } = settings;
-  const { common, rare, legendary } = rarityDistribution;
-
-  if (common + rare + legendary !== cardsPerPack) {
-    return {
-      success: false,
-      error: new Error(
-        `Rarity distribution (${common}+${rare}+${legendary}=${common + rare + legendary}) must equal cardsPerPack (${cardsPerPack})`
-      ),
-    };
+  if (cardPool.length === 0) {
+    return { success: false, error: new Error("At least one card is required") };
   }
-
-  const commonCards = cardPool.filter((c) => c.rarity === "common");
-  const rareCards = cardPool.filter((c) => c.rarity === "rare");
-  const legendaryCards = cardPool.filter((c) => c.rarity === "legendary");
-
-  const neededCommon = allowDuplicates ? 1 : common * playerCount;
-  const neededRare = allowDuplicates ? 1 : rare * playerCount;
-  const neededLegendary = allowDuplicates ? 1 : legendary * playerCount;
-
-  if (commonCards.length < neededCommon) {
-    return {
-      success: false,
-      error: new Error(
-        `Need ${neededCommon} common cards, only ${commonCards.length} available`
-      ),
-    };
+  if (settings.playerCount < 1) {
+    return { success: false, error: new Error("At least one player is required") };
   }
-  if (rareCards.length < neededRare) {
-    return {
-      success: false,
-      error: new Error(
-        `Need ${neededRare} rare cards, only ${rareCards.length} available`
-      ),
-    };
-  }
-  if (legendaryCards.length < neededLegendary) {
-    return {
-      success: false,
-      error: new Error(
-        `Need ${neededLegendary} legendary cards, only ${legendaryCards.length} available`
-      ),
-    };
-  }
-
   return { success: true, data: true };
 }
 
@@ -73,45 +34,25 @@ export function dealPacks(
   if (!validation.success) return validation;
 
   const rng = mulberry32(djb2Hash(seed));
-  const { playerCount, cardsPerPack, rarityDistribution, allowDuplicates } = settings;
-  const { common, rare, legendary } = rarityDistribution;
+  const { playerCount, cardsPerPack } = settings;
 
-  let commonPool = seededShuffle(
-    cardPool.filter((c) => c.rarity === "common"),
-    rng
-  );
-  let rarePool = seededShuffle(
-    cardPool.filter((c) => c.rarity === "rare"),
-    rng
-  );
-  let legendaryPool = seededShuffle(
-    cardPool.filter((c) => c.rarity === "legendary"),
-    rng
-  );
+  // Shuffle the entire card pool — rarity is not used for dealing
+  const shuffledPool = seededShuffle([...cardPool], rng);
 
   const players: Player[] = [];
+  let poolIndex = 0;
 
   for (let i = 0; i < playerCount; i++) {
     const cards: Card[] = [];
-
-    const dealFromPool = (pool: Card[], count: number): Card[] => {
-      if (allowDuplicates) {
-        return Array.from({ length: count }, (_, idx) => pool[idx % pool.length]);
-      }
-      return pool.splice(0, count);
-    };
-
-    cards.push(...dealFromPool(commonPool, common));
-    cards.push(...dealFromPool(rarePool, rare));
-    cards.push(...dealFromPool(legendaryPool, legendary));
-
-    // Shuffle the dealt cards so rarity order isn't predictable
-    const shuffledCards = seededShuffle(cards, rng);
-
+    for (let j = 0; j < cardsPerPack; j++) {
+      // Cycle through the pool if there aren't enough unique cards
+      cards.push(shuffledPool[poolIndex % shuffledPool.length]);
+      poolIndex++;
+    }
     players.push({
       id: `player-${i + 1}`,
       name: `Player ${i + 1}`,
-      cards: shuffledCards,
+      cards,
     });
   }
 

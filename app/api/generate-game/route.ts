@@ -11,6 +11,7 @@ export const maxDuration = 60;
 interface TaskInput {
   name: string;
   rarity: Rarity;
+  customImageUrl?: string;
 }
 
 interface RequestBody {
@@ -37,14 +38,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "At least one task is required" }, { status: 400 });
   }
 
-  const { common, rare, legendary } = settings.rarityDistribution;
-  if (common + rare + legendary !== settings.cardsPerPack) {
-    return NextResponse.json(
-      { error: "Rarity distribution must equal cardsPerPack" },
-      { status: 400 }
-    );
-  }
-
   const gameId = generateGameId();
   const gmToken = generateGmToken();
 
@@ -65,15 +58,34 @@ export async function POST(req: NextRequest) {
 
   const players = packResult.data;
 
-  // Generate AI art for each card (server-side only)
+  // Generate / upload art for each card (server-side only)
   const supabase = getSupabaseServer();
   const dashscopeKey = process.env.DASHSCOPE_API_KEY;
 
-  if (dashscopeKey) {
-    await Promise.all(
-      cardPool.map(async (card) => {
-        try {
-          // Call qwen-image-2.0-pro via DashScope
+  // Build a map of cardId → customImageUrl for quick lookup
+  const customImageMap = new Map(
+    tasks.map((task, i) => [`${gameId}-card-${i}`, task.customImageUrl])
+  );
+
+  await Promise.all(
+    cardPool.map(async (card) => {
+      try {
+        const customDataUrl = customImageMap.get(card.id);
+
+        if (customDataUrl) {
+          // User uploaded a custom image — decode base64 and store in Supabase
+          const base64 = customDataUrl.split(",")[1];
+          if (!base64) return;
+          const buffer = Buffer.from(base64, "base64");
+          const path = `${gameId}/${card.id}.png`;
+          const { error } = await supabase.storage
+            .from("card-art")
+            .upload(path, buffer, { contentType: "image/png", upsert: true });
+          if (error) return;
+          const { data: urlData } = supabase.storage.from("card-art").getPublicUrl(path);
+          card.artUrl = urlData.publicUrl;
+        } else if (dashscopeKey) {
+          // No custom image — generate AI art via DashScope
           const aiRes = await fetch(
             "https://dashscope-intl.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation",
             {
@@ -100,8 +112,7 @@ export async function POST(req: NextRequest) {
                   size: "1024*1024",
                   prompt_extend: true,
                   watermark: false,
-                  negative_prompt:
-                    "blurry, low quality, text, borders, watermark, logo",
+                  negative_prompt: "blurry, low quality, text, borders, watermark, logo",
                 },
               }),
             }
@@ -110,35 +121,29 @@ export async function POST(req: NextRequest) {
           if (!aiRes.ok) return;
 
           const aiData = await aiRes.json();
-          // Response: output.choices[0].message.content[0].image
           const imageUrl: string =
             aiData.output?.choices?.[0]?.message?.content?.[0]?.image;
           if (!imageUrl) return;
 
-          // Download image immediately — DashScope URLs expire after 24h
+          // Download immediately — DashScope URLs expire after 24h
           const imgRes = await fetch(imageUrl);
           if (!imgRes.ok) return;
           const buffer = await imgRes.arrayBuffer();
 
-          // Upload to Supabase Storage
           const path = `${gameId}/${card.id}.png`;
           const { error } = await supabase.storage
             .from("card-art")
             .upload(path, buffer, { contentType: "image/png", upsert: true });
-
           if (error) return;
 
-          // Get public URL and update card
-          const { data: urlData } = supabase.storage
-            .from("card-art")
-            .getPublicUrl(path);
+          const { data: urlData } = supabase.storage.from("card-art").getPublicUrl(path);
           card.artUrl = urlData.publicUrl;
-        } catch {
-          // Silently fall back to empty artUrl — CSS gradient used in Card component
         }
-      })
-    );
-  }
+      } catch {
+        // Silently fall back to empty artUrl — CSS gradient used in Card component
+      }
+    })
+  );
 
   // Update artUrls in dealt player cards to match generated URLs
   const artUrlMap = new Map(cardPool.map((c) => [c.id, c.artUrl]));

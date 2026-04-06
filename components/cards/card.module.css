@@ -22,43 +22,41 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  z-index: 0;
+  z-index: 2;
   pointer-events: none;
   border-radius: var(--card-radius);
 }
 
 .artLayer {
   position: absolute;
-  top: var(--art-area-top);
-  left: var(--art-area-left);
-  width: var(--art-area-width);
-  height: var(--art-area-height);
+  inset: 0;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  z-index: 1;
+  z-index: 0;
   pointer-events: none;
+  border-radius: var(--card-radius);
 }
 
 .artFallback {
   position: absolute;
-  top: var(--art-area-top);
-  left: var(--art-area-left);
-  width: var(--art-area-width);
-  height: var(--art-area-height);
-  z-index: 1;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
   pointer-events: none;
+  border-radius: var(--card-radius);
 }
 
 .textLayer {
   position: absolute;
-  top: var(--text-area-top);
-  left: var(--text-area-left);
-  width: var(--text-area-width);
-  height: var(--text-area-height);
-  z-index: 2;
+  top: 14px;
+  left: 14px;
+  right: 14px;
+  z-index: 3;
   pointer-events: none;
   display: flex;
   flex-direction: column;
-  gap: 4px;
   overflow: hidden;
 }
 
@@ -163,6 +161,15 @@
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  text-shadow:
+    -1px -1px 0 #fff,
+     1px -1px 0 #fff,
+    -1px  1px 0 #fff,
+     1px  1px 0 #fff,
+    -2px  0   0 #fff,
+     2px  0   0 #fff,
+     0   -2px 0 #fff,
+     0    2px 0 #fff;
 }
 
 .divider {

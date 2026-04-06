@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef, useCallback } from "react";
 import Card from "@/components/cards/Card";
 import { getFlavorText } from "@/lib/flavor-text";
 import type { PackSettings, Rarity } from "@/lib/types";
@@ -11,6 +11,7 @@ import Button from "@/components/ui/Button";
 interface Task {
   name: string;
   rarity: "common" | "rare" | "legendary";
+  customImageUrl?: string;
 }
 
 interface GeneratedGame {
@@ -49,6 +50,9 @@ export default function GameSetupWizard({
   const [result, setResult] = useState<GeneratedGame | null>(null);
   const [activeCardIndex, setActiveCardIndex] = useState<number | null>(null);
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const uploadTargetIndex = useRef<number>(-1);
+
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   const previewCards = useMemo(
     () =>
@@ -56,7 +60,7 @@ export default function GameSetupWizard({
         id: `preview-card-${index}`,
         taskName: task.name,
         rarity: task.rarity,
-        artUrl: "",
+        artUrl: task.customImageUrl ?? "",
         flavorText: getFlavorText(`preview-card-${index}`, task.rarity),
       })),
     [tasks]
@@ -67,12 +71,7 @@ export default function GameSetupWizard({
   }
 
   function canGenerate() {
-    const { common, rare, legendary } = settings.rarityDistribution;
-    return (
-      tasks.length > 0 &&
-      common + rare + legendary === settings.cardsPerPack &&
-      settings.playerCount > 0
-    );
+    return tasks.length > 0 && settings.playerCount > 0;
   }
 
   function addTask() {
@@ -100,6 +99,31 @@ export default function GameSetupWizard({
     );
   }
 
+  const openUpload = useCallback((index: number) => {
+    uploadTargetIndex.current = index;
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+      fileInputRef.current.click();
+    }
+  }, []);
+
+  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    const index = uploadTargetIndex.current;
+    if (!file || index < 0) return;
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const dataUrl = ev.target?.result as string;
+      setTasks((current) =>
+        current.map((task, i) =>
+          i === index ? { ...task, customImageUrl: dataUrl } : task
+        )
+      );
+    };
+    reader.readAsDataURL(file);
+  }, []);
+
   async function generate() {
     if (!canGenerate()) {
       setGenError("Check the pack settings and make sure you have at least one card.");
@@ -116,7 +140,11 @@ export default function GameSetupWizard({
         body: JSON.stringify({
           title: title.trim(),
           description: "",
-          tasks,
+          tasks: tasks.map((t) => ({
+            name: t.name,
+            rarity: t.rarity,
+            customImageUrl: t.customImageUrl,
+          })),
           settings,
         }),
       });
@@ -138,7 +166,7 @@ export default function GameSetupWizard({
   return (
     <div className="grid gap-6 xl:grid-cols-[310px_minmax(0,1fr)]">
       <aside
-        className={`app-panel self-start p-5 ${result ? "min-h-[760px]" : "h-fit"}`}
+        className={`app-panel sticky top-6 self-start p-5 ${result ? "min-h-[760px]" : "h-fit"}`}
       >
         <div className="flex h-full flex-col gap-6">
           <div className="flex flex-col gap-5">
@@ -222,9 +250,17 @@ export default function GameSetupWizard({
         </div>
       </aside>
 
-      <section className="min-h-[760px] overflow-hidden rounded-[25px] px-1 py-1">
-        <div className="app-scroll-hidden h-full overflow-y-auto">
-          <div className="flex min-h-full flex-wrap content-start gap-x-20 gap-y-24 pl-2 pr-0 py-3 sm:pl-3 sm:pr-0 sm:py-4 xl:pl-4 xl:pr-0 xl:py-5">
+      {/* Hidden file input — shared across all cards */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleFileChange}
+      />
+
+      <section className="rounded-[25px] px-1 py-1">
+        <div className="flex flex-wrap content-start gap-x-20 gap-y-24 pl-2 pr-0 py-3 sm:pl-3 sm:pr-0 sm:py-4 xl:pl-4 xl:pr-0 xl:py-5">
           {previewCards.map((card, index) => (
             <div
               key={card.id}
@@ -255,11 +291,29 @@ export default function GameSetupWizard({
                 </div>
               </button>
 
+              {/* Top-right controls: upload + delete */}
               <div
-                className={`pointer-events-none absolute inset-x-0 top-3 flex justify-end px-3 transition-opacity ${
+                className={`pointer-events-none absolute inset-x-0 top-3 flex justify-end gap-1.5 px-3 transition-opacity ${
                   activeCardIndex === index ? "opacity-100" : "opacity-0 group-hover:opacity-100"
                 }`}
               >
+                {/* Upload button */}
+                <button
+                  type="button"
+                  className="pointer-events-auto flex h-8 w-8 items-center justify-center rounded-full border border-[var(--border)] bg-white/92 text-[rgba(32,32,32,0.78)] shadow-[0_6px_10px_rgba(0,0,0,0.08)]"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    openUpload(index);
+                  }}
+                  aria-label={`Upload image for ${card.taskName}`}
+                >
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M7 9V2M4 5l3-3 3 3" />
+                    <path d="M2 11h10" />
+                  </svg>
+                </button>
+
+                {/* Delete button */}
                 <button
                   type="button"
                   className="pointer-events-auto flex h-8 w-8 items-center justify-center rounded-full border border-[var(--border)] bg-white/92 text-lg leading-none text-[rgba(32,32,32,0.78)] shadow-[0_6px_10px_rgba(0,0,0,0.08)]"
@@ -303,12 +357,11 @@ export default function GameSetupWizard({
               </div>
             </div>
           ))}
-            {previewCards.length === 0 && (
-              <div className="flex min-h-[620px] w-full items-start justify-start">
-                <div className="h-full w-full" />
-              </div>
-            )}
-          </div>
+          {previewCards.length === 0 && (
+            <div className="flex min-h-[620px] w-full items-start justify-start">
+              <div className="h-full w-full" />
+            </div>
+          )}
         </div>
       </section>
     </div>
