@@ -21,6 +21,7 @@ export default function PackReveal({ cards, onComplete }: PackRevealProps) {
   const [revealed, setRevealed] = useState(0);
   const [phase, setPhase] = useState<AnimPhase>("idle");
   const [showFace, setShowFace] = useState(false);
+  const [effectKey, setEffectKey] = useState(0);
 
   // Lock scroll — iOS Safari ignores overflow:hidden; position:fixed is the only reliable fix
   useEffect(() => {
@@ -45,7 +46,10 @@ export default function PackReveal({ cards, onComplete }: PackRevealProps) {
       return () => clearTimeout(t);
     }
     if (phase === "fold-in") {
-      const t = setTimeout(() => setPhase("revealed"), 380);
+      const t = setTimeout(() => {
+        setPhase("revealed");
+        setEffectKey((k) => k + 1);
+      }, 380);
       return () => clearTimeout(t);
     }
     if (phase === "exiting") {
@@ -76,8 +80,20 @@ export default function PackReveal({ cards, onComplete }: PackRevealProps) {
     phase === "fold-in"  ? styles.turnInGrow :
     (phase === "revealed" || phase === "exiting") ? styles.scaleUp : "";
 
+  const rarity = currentCard.rarity;
+  const showEffect = phase === "revealed" && (rarity === "rare" || rarity === "legendary");
+
   return (
-    <div className="flex h-screen items-center justify-center overflow-hidden">
+    <div className="relative flex h-screen items-center justify-center overflow-hidden">
+
+      {/* Full-screen rarity effect */}
+      {showEffect && (
+        <div key={effectKey} className={rarity === "legendary" ? styles.effectLegendary : styles.effectRare} aria-hidden="true">
+          <div className={styles.effectRays} />
+          <div className={styles.effectFlash} />
+        </div>
+      )}
+
         <div
           className="relative"
           style={{ width: "var(--card-width)", height: "var(--card-height)" }}

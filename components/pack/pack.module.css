@@ -235,10 +235,82 @@
   100% { transform: translateY(-140%); opacity: 0; }
 }
 
+/* ── Rarity reveal effects ── */
+
+.effectRare,
+.effectLegendary {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Flash: full-screen colour wash that fades out */
+.effectFlash {
+  position: absolute;
+  inset: 0;
+  animation: effectFlashFade 0.9s ease-out forwards;
+}
+
+.effectRare .effectFlash {
+  background: radial-gradient(ellipse at center, rgba(96, 165, 250, 0.45) 0%, transparent 70%);
+}
+
+.effectLegendary .effectFlash {
+  background: radial-gradient(ellipse at center, rgba(251, 191, 36, 0.55) 0%, rgba(167, 60, 255, 0.25) 50%, transparent 70%);
+}
+
+@keyframes effectFlashFade {
+  0%   { opacity: 1; transform: scale(0.6); }
+  40%  { opacity: 1; transform: scale(1.1); }
+  100% { opacity: 0; transform: scale(1.4); }
+}
+
+/* Rays: conic-gradient that spins and fades */
+.effectRays {
+  position: absolute;
+  inset: -40%;
+  animation: effectRaysSpin 1.4s ease-out forwards;
+  transform-origin: center;
+}
+
+.effectRare .effectRays {
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg, rgba(147, 197, 253, 0.18) 20deg, transparent 40deg,
+    transparent 60deg, rgba(147, 197, 253, 0.18) 80deg, transparent 100deg,
+    transparent 120deg, rgba(147, 197, 253, 0.18) 140deg, transparent 160deg,
+    transparent 180deg, rgba(147, 197, 253, 0.18) 200deg, transparent 220deg,
+    transparent 240deg, rgba(147, 197, 253, 0.18) 260deg, transparent 280deg,
+    transparent 300deg, rgba(147, 197, 253, 0.18) 320deg, transparent 340deg,
+    transparent 360deg
+  );
+}
+
+.effectLegendary .effectRays {
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg, rgba(251, 191, 36, 0.22) 20deg, transparent 40deg,
+    transparent 60deg, rgba(251, 191, 36, 0.22) 80deg, transparent 100deg,
+    transparent 120deg, rgba(251, 191, 36, 0.22) 140deg, transparent 160deg,
+    transparent 180deg, rgba(251, 191, 36, 0.22) 200deg, transparent 220deg,
+    transparent 240deg, rgba(251, 191, 36, 0.22) 260deg, transparent 280deg,
+    transparent 300deg, rgba(251, 191, 36, 0.22) 320deg, transparent 340deg,
+    transparent 360deg
+  );
+}
+
+@keyframes effectRaysSpin {
+  0%   { opacity: 0; transform: rotate(0deg)   scale(0.5); }
+  15%  { opacity: 1; }
+  100% { opacity: 0; transform: rotate(40deg)  scale(1.1); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .packSheen { animation: none; }
   .packTearing { animation: none; opacity: 0; }
   .flipCard { transition: none; }
   .burst { animation: none; display: none; }
   .stackExiting { animation: none; opacity: 0; }
+  .effectFlash, .effectRays { animation: none; display: none; }
 }
