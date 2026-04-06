@@ -44,7 +44,9 @@ export default function PlayerPackView({
   }
 
   if (phase === "reveal") {
-    return <PackReveal cards={cards} onComplete={() => setPhase("deck")} />;
+    const rarityOrder = { common: 0, rare: 1, legendary: 2 };
+    const sortedCards = [...cards].sort((a, b) => rarityOrder[a.rarity] - rarityOrder[b.rarity]);
+    return <PackReveal cards={sortedCards} onComplete={() => setPhase("deck")} />;
   }
 
   return (
