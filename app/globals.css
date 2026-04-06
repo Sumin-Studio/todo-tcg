@@ -55,6 +55,7 @@ body {
   color: var(--text-body);
   font-family: var(--font-mono), monospace;
   position: relative;
+  isolation: isolate;
 }
 
 body::before {
@@ -67,13 +68,32 @@ body::before {
     linear-gradient(rgba(255, 255, 255, 0.72) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.72) 1px, transparent 1px),
     linear-gradient(180deg, rgba(0, 0, 0, 0.025), rgba(255, 255, 255, 0.08));
-  background-size: 28px 28px, 28px 28px, 100% 100%;
+  background-size: 20px 20px, 20px 20px, 100% 100%;
   z-index: 0;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.46;
+  background-image:
+    url("/textures/paper-texture-screen.jpg"),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01));
+  background-size:
+    100% 100%,
+    100% 100%;
+  background-position: center center, center center;
+  background-repeat: no-repeat, no-repeat;
+  mix-blend-mode: screen;
+  filter: contrast(112%) brightness(104%);
+  z-index: 1;
 }
 
 body > * {
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
 * {
@@ -96,7 +116,7 @@ a {
 
 .app-panel {
   background: linear-gradient(to bottom, var(--bg-panel-from), var(--bg-panel-to));
-  border: 3px solid var(--border);
+  border: 1px solid var(--border);
   border-radius: 25px;
   box-shadow: var(--shadow-panel);
 }
@@ -109,7 +129,7 @@ a {
   min-height: 58px;
   padding: 0.95rem 1.5rem;
   border-radius: 39px;
-  outline: 2px solid var(--border-button);
+  outline: 1px solid var(--border-button);
   outline-offset: 0;
   background: linear-gradient(to bottom, var(--btn-from), var(--btn-to));
   color: var(--text-button);
@@ -135,7 +155,7 @@ a {
 .app-input:focus-visible,
 .app-textarea:focus-visible,
 .app-checkbox:focus-visible {
-  outline: 2px solid rgba(32, 32, 32, 0.45);
+  outline: 1px solid rgba(32, 32, 32, 0.45);
   outline-offset: 3px;
 }
 
@@ -150,7 +170,7 @@ a {
   background: var(--bg-input);
   color: var(--text-body);
   border: 0;
-  box-shadow: 0 0 0 3px var(--border);
+  box-shadow: 0 0 0 1px var(--border);
 }
 
 .app-input {
@@ -202,7 +222,7 @@ a {
   height: 20px;
   border-radius: 6px;
   background: var(--bg-input);
-  box-shadow: 0 0 0 2px var(--border);
+  box-shadow: 0 0 0 1px var(--border);
   position: relative;
   flex-shrink: 0;
 }

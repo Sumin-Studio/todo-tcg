@@ -109,7 +109,7 @@
   font-weight: 900;
   letter-spacing: 0.08em;
   color: rgba(85, 137, 100, 0.92);
-  border: 3px solid rgba(85, 137, 100, 0.92);
+  border: 1px solid rgba(85, 137, 100, 0.92);
   padding: 4px 10px;
   border-radius: 4px;
   transform: rotate(-18deg);
