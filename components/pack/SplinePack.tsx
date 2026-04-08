@@ -1,51 +1,63 @@
 "use client";
 
-import { useRef, useState, useCallback } from "react";
-import dynamic from "next/dynamic";
-import type { Application } from "@splinetool/runtime";
+import { useEffect, useRef, useState } from "react";
 
-// Spline uses WebGL — must be dynamically imported to avoid SSR errors.
-const Spline = dynamic(() => import("@splinetool/react-spline"), { ssr: false });
+// Tell TypeScript about the <spline-viewer> custom element.
+// React 19 uses React.JSX, not the global JSX namespace.
+declare module "react" {
+  namespace JSX {
+    interface IntrinsicElements {
+      "spline-viewer": {
+        url?: string;
+        style?: import("react").CSSProperties;
+        className?: string;
+      };
+    }
+  }
+}
 
-// ← Replace with your published Spline scene URL
-const SPLINE_SCENE_URL = "https://prod.spline.design/splinedesigncourse-0C0ELtGkfRQtejXY4NE8CGUU/scene.splinecode";
+const SPLINE_SCENE_URL =
+  "https://prod.spline.design/ixsaTw-8uprK5jbV/scene.splinecode";
 
 interface SplinePackProps {
   onOpen: () => void;
 }
 
 export default function SplinePack({ onOpen }: SplinePackProps) {
-  const splineRef = useRef<Application | null>(null);
   const [fadeActive, setFadeActive] = useState(false);
-  const calledRef = useRef(false); // guard against double-fire
+  const calledRef = useRef(false);
 
-  const handleLoad = useCallback((splineApp: Application) => {
-    splineRef.current = splineApp;
+  // Inject <script type="module"> — Next.js Script component doesn't support
+  // type="module" reliably, so we do it manually once.
+  useEffect(() => {
+    if (document.querySelector('script[src*="spline-viewer"]')) return;
+    const script = document.createElement("script");
+    script.type = "module";
+    script.src =
+      "https://unpkg.com/@splinetool/viewer@1.12.78/build/spline-viewer.js";
+    document.head.appendChild(script);
   }, []);
 
-  // onSplineMouseDown fires when user clicks any object in the scene.
-  // Using this (not a wrapper div onClick) lets Spline receive the pointer
-  // event natively so its built-in animations trigger correctly.
-  const handleSplineMouseDown = useCallback(() => {
+  function handleClick() {
     if (calledRef.current) return;
     calledRef.current = true;
-
-    // Wait 2s for the Spline animation to play, then fade to black (500ms),
-    // then call onOpen to begin image preloading.
+    // Native click events are composed:true, so they bubble through the
+    // <spline-viewer> shadow DOM to this wrapper — Spline's own animation
+    // triggers first, then we start our timer.
     setTimeout(() => {
       setFadeActive(true);
       setTimeout(onOpen, 500);
     }, 2000);
-  }, [onOpen]);
+  }
 
   return (
     <>
-      {/* Full-viewport Spline canvas */}
-      <div style={{ position: "fixed", inset: 0, zIndex: 10 }}>
-        <Spline
-          scene={SPLINE_SCENE_URL}
-          onLoad={handleLoad}
-          onSplineMouseDown={handleSplineMouseDown}
+      <div
+        style={{ position: "fixed", inset: 0, zIndex: 10 }}
+        onClick={handleClick}
+      >
+        <spline-viewer
+          url={SPLINE_SCENE_URL}
           style={{ width: "100%", height: "100%" }}
         />
       </div>
