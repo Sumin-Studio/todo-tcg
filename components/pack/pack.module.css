@@ -297,6 +297,56 @@
   100% { transform: translateY(-140%); opacity: 0; }
 }
 
+/* Slide card right to dismiss */
+.stackExitRight {
+  animation: stackExitRight 0.45s cubic-bezier(0.4, 0, 1, 1) forwards;
+  pointer-events: none;
+}
+
+@keyframes stackExitRight {
+  0%   { transform: translateX(0)    rotate(0deg);  opacity: 1; }
+  100% { transform: translateX(160%) rotate(10deg); opacity: 0; }
+}
+
+/* Rarity stars */
+.rarityStars {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  animation: starsAppear 0.4s ease-out forwards;
+}
+
+@keyframes starsAppear {
+  from { opacity: 0; transform: translateY(10px) scale(0.7); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);   }
+}
+
+.star {
+  font-size: 30px;
+  line-height: 1;
+  display: block;
+}
+
+.starCommon {
+  color: #9CA3AF;
+}
+
+.starRare {
+  color: #60A5FA;
+  filter: drop-shadow(0 0 6px rgba(96, 165, 250, 0.8));
+}
+
+.starLegendary {
+  color: #F59E0B;
+  filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.9));
+  animation: starPulse 1.8s ease-in-out infinite;
+}
+
+@keyframes starPulse {
+  0%, 100% { filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.7)); }
+  50%       { filter: drop-shadow(0 0 14px rgba(245, 158, 11, 1)); }
+}
+
 /* ── Rarity reveal effects ── */
 
 .effectRare,
@@ -374,5 +424,8 @@
   .flipCard { transition: none; }
   .burst { animation: none; display: none; }
   .stackExiting { animation: none; opacity: 0; }
+  .stackExitRight { animation: none; opacity: 0; }
   .effectFlash, .effectRays { animation: none; display: none; }
+  .rarityStars { animation: none; }
+  .starLegendary { animation: none; }
 }

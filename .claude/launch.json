@@ -3,9 +3,10 @@
   "configurations": [
     {
       "name": "todo-tcg",
-      "runtimeExecutable": "/usr/local/bin/node",
-      "runtimeArgs": ["/Users/simon.weng/Desktop/MyProject/TODO-TCG/node_modules/next/dist/bin/next", "dev"],
-      "port": 3000
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 3000,
+      "autoPort": true
     }
   ]
 }

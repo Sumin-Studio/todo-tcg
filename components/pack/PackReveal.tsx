@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import type { Card as CardType } from "@/lib/types";
 import Card from "@/components/cards/Card";
-import CardBack from "@/components/cards/CardBack";
 import styles from "./pack.module.css";
 
 interface PackRevealProps {
@@ -11,16 +10,26 @@ interface PackRevealProps {
   onComplete: () => void;
 }
 
-// fold-out: card turns edge-on (rotateY 0→90deg)
-// fold-in:  card turns face-forward + grows (rotateY 90→0deg, scale 1→1.2)
-// revealed: card held at 1.2x, waiting for second click
-// exiting:  card slides up off screen
-type AnimPhase = "idle" | "fold-out" | "fold-in" | "revealed" | "exiting";
+function RarityStars({ rarity }: { rarity: CardType["rarity"] }) {
+  const count = rarity === "common" ? 1 : rarity === "rare" ? 2 : 3;
+  const starClass =
+    rarity === "legendary" ? styles.starLegendary :
+    rarity === "rare"      ? styles.starRare :
+                             styles.starCommon;
+  return (
+    <div className={styles.rarityStars} aria-label={`${rarity} rarity — ${count} star${count > 1 ? "s" : ""}`}>
+      {Array.from({ length: count }).map((_, i) => (
+        <span key={i} className={`${styles.star} ${starClass}`} aria-hidden="true">★</span>
+      ))}
+    </div>
+  );
+}
+
+type AnimPhase = "idle" | "exiting";
 
 export default function PackReveal({ cards, onComplete }: PackRevealProps) {
-  const [revealed, setRevealed] = useState(0);
+  const [current, setCurrent] = useState(0);
   const [phase, setPhase] = useState<AnimPhase>("idle");
-  const [showFace, setShowFace] = useState(false);
   const [effectKey, setEffectKey] = useState(0);
 
   // Lock scroll — iOS Safari ignores overflow:hidden; position:fixed is the only reliable fix
@@ -38,50 +47,32 @@ export default function PackReveal({ cards, onComplete }: PackRevealProps) {
   }, []);
 
   useEffect(() => {
-    if (phase === "fold-out") {
-      const t = setTimeout(() => {
-        setShowFace(true);
-        setPhase("fold-in");
-      }, 220);
-      return () => clearTimeout(t);
-    }
-    if (phase === "fold-in") {
-      const t = setTimeout(() => {
-        setPhase("revealed");
-        setEffectKey((k) => k + 1);
-      }, 380);
-      return () => clearTimeout(t);
-    }
     if (phase === "exiting") {
       const t = setTimeout(() => {
-        const next = revealed + 1;
-        setShowFace(false);
+        const next = current + 1;
         if (next >= cards.length) {
           onComplete();
         } else {
-          setRevealed(next);
+          setCurrent(next);
           setPhase("idle");
+          setEffectKey((k) => k + 1);
         }
       }, 450);
       return () => clearTimeout(t);
     }
-  }, [phase, revealed, cards.length, onComplete]);
+  }, [phase, current, cards.length, onComplete]);
 
   function handleClick() {
-    if (phase === "idle") setPhase("fold-out");
-    else if (phase === "revealed") setPhase("exiting");
+    if (phase === "idle") setPhase("exiting");
   }
 
-  const currentCard = cards[revealed];
-  const remaining = cards.length - revealed;
-
-  const innerClass =
-    phase === "fold-out" ? styles.turnOut :
-    phase === "fold-in"  ? styles.turnInGrow :
-    (phase === "revealed" || phase === "exiting") ? styles.scaleUp : "";
+  const currentCard = cards[current];
+  const nextCard    = cards[current + 1];
+  const nextNextCard = cards[current + 2];
+  const remaining   = cards.length - current;
 
   const rarity = currentCard.rarity;
-  const showEffect = phase === "revealed" && (rarity === "rare" || rarity === "legendary");
+  const showEffect = phase === "idle" && (rarity === "rare" || rarity === "legendary");
 
   return (
     <div className="relative flex h-screen items-center justify-center">
@@ -94,24 +85,28 @@ export default function PackReveal({ cards, onComplete }: PackRevealProps) {
         </div>
       )}
 
+      <div className="flex flex-col items-center gap-4">
         <div
           className="relative"
           style={{ width: "var(--card-width)", height: "var(--card-height)" }}
         >
-          {/* Always rendered — opacity fades when no longer needed */}
+          {/* Stack card 2 — farthest back, face-up */}
           <div className={styles.stackCard2} style={{ opacity: remaining > 2 ? 1 : 0 }} aria-hidden="true">
-            <CardBack />
-          </div>
-          <div className={styles.stackCard1} style={{ opacity: remaining > 1 ? 1 : 0 }} aria-hidden="true">
-            <CardBack />
+            {nextNextCard && <Card card={nextNextCard} isComplete={false} />}
           </div>
 
+          {/* Stack card 1 — second from top, face-up */}
+          <div className={styles.stackCard1} style={{ opacity: remaining > 1 ? 1 : 0 }} aria-hidden="true">
+            {nextCard && <Card card={nextCard} isComplete={false} />}
+          </div>
+
+          {/* Top card — face-up, clickable */}
           <div
-            key={revealed}
+            key={current}
             className={[
               styles.stackCardTop,
-              revealed > 0 ? styles.stackPromote : "",
-              phase === "exiting" ? styles.stackExiting : "",
+              current > 0          ? styles.stackPromote  : "",
+              phase === "exiting"  ? styles.stackExitRight : "",
             ]
               .filter(Boolean)
               .join(" ")}
@@ -121,22 +116,15 @@ export default function PackReveal({ cards, onComplete }: PackRevealProps) {
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") handleClick();
             }}
-            aria-label={
-              phase === "idle" ? "Tap to reveal card" :
-              phase === "revealed" ? "Tap to dismiss" :
-              currentCard.taskName
-            }
+            aria-label="Tap to go to next card"
           >
-            {/* perspective wrapper — isolated, no preserve-3d, won't bleed onto siblings */}
-            <div className={styles.cardTurnPerspective}>
-              <div className={innerClass}>
-                {showFace
-                  ? <Card card={currentCard} isComplete={false} />
-                  : <CardBack />}
-              </div>
-            </div>
+            <Card card={currentCard} isComplete={false} />
           </div>
         </div>
+
+        {/* Rarity stars — re-mounts on each card change to replay the appear animation */}
+        <RarityStars key={current} rarity={rarity} />
+      </div>
     </div>
   );
 }
