@@ -81,7 +81,10 @@ export default function PackReveal({ cards, onComplete }: PackRevealProps) {
       {showEffect && (
         <div key={effectKey} className={rarity === "legendary" ? styles.effectLegendary : styles.effectRare} aria-hidden="true">
           <div className={styles.effectRays} />
+          <div className={styles.effectShockwave} />
+          <div className={styles.effectShockwave2} />
           <div className={styles.effectFlash} />
+          <div className={styles.effectGlow} />
         </div>
       )}
 
