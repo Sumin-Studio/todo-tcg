@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# pack frame source assets (large; processed copies live in public/pack-frames/)
+/FINAL booster pack/

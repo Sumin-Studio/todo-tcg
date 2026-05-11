@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { Card } from "@/lib/types";
-import SplinePack from "@/components/pack/SplinePack";
+import FrameBoosterPack from "@/components/pack/FrameBoosterPack";
 import PackReveal from "@/components/pack/PackReveal";
 import CardGrid from "@/components/cards/CardGrid";
 import ProgressBar from "@/components/ui/ProgressBar";
@@ -53,7 +53,7 @@ export default function PlayerPackView({
     <div className="flex min-h-screen flex-col gap-6 px-4 py-8 sm:px-6 sm:py-10">
       {(phase === "pack" || phase === "loading") && (
         <>
-          <SplinePack onOpen={handlePackOpen} />
+          <FrameBoosterPack onOpen={handlePackOpen} />
           {phase === "loading" && (
             <p
               className="text-sm text-[rgba(32,32,32,0.45)]"
