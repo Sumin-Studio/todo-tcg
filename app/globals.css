@@ -264,85 +264,87 @@ a {
   display: none;
 }
 
-/* Glassy skeuomorphic pill-style <select> — matches .app-button language */
+/* Glass skeuomorphic <select> — heavy gradient + inset highlight + hard drop shadow (mirrors .app-button) */
 .select-pill {
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
+  background-color: #d8d8d8;
   background-image:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.55) 45%, rgba(245, 245, 245, 0.85) 100%),
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10' fill='none' stroke='%23202020' stroke-opacity='0.55' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M2 4l3 3 3-3'/></svg>");
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10' fill='none' stroke='%23202020' stroke-opacity='0.55' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'><path d='M2 4l3 3 3-3'/></svg>"),
+    linear-gradient(to bottom, #c4c4c4 0%, #f8f8f8 100%);
   background-repeat: no-repeat, no-repeat;
-  background-position: 0 0, right 10px center;
-  background-size: 100% 100%, 10px 10px;
-  background-color: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background-position: right 10px center, 0 0;
+  background-size: 10px 10px, 100% 100%;
+  border: 0;
   outline: 1px solid var(--border-button);
-  outline-offset: -1px;
+  outline-offset: 0;
   border-radius: 999px;
-  padding: 7px 28px 7px 14px;
+  padding: 8px 28px 8px 14px;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.02em;
-  color: var(--text-body);
+  color: var(--text-button);
   cursor: pointer;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    inset 0 6px 6px -4px rgba(255, 255, 255, 1),
-    inset 0 -3px 4px -2px rgba(0, 0, 0, 0.08),
-    0 1px 0 rgba(78, 78, 78, 0.18),
-    0 2px 4px rgba(0, 0, 0, 0.08);
-  transition: transform 100ms ease, filter 120ms ease;
+    inset 0 9px 6px rgba(255, 255, 255, 1),
+    0 2px 0 rgba(78, 78, 78, 0.2),
+    0 4px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 120ms ease, filter 120ms ease;
 }
 
 .select-pill:hover {
-  filter: brightness(1.04);
+  filter: brightness(1.03);
 }
 
 .select-pill:active {
   transform: translateY(1px);
+  box-shadow:
+    inset 0 7px 5px rgba(255, 255, 255, 0.95),
+    0 1px 0 rgba(78, 78, 78, 0.18),
+    0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
 .select-pill:focus-visible {
-  outline: 1px solid rgba(32, 32, 32, 0.45);
+  outline: 1px solid rgba(32, 32, 32, 0.55);
   outline-offset: 2px;
 }
 
-/* Urgency color tints (gradient stays, color overlay shifts the hue) */
+/* Urgency color tints — colored gradient base + same white inner-highlight glass on top */
 .select-pill[data-urgency="low"] {
   background-image:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(229, 231, 235, 0.6) 100%),
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10' fill='none' stroke='%234b5563' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'><path d='M2 4l3 3 3-3'/></svg>");
-  color: #374151;
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10' fill='none' stroke='%23374151' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'><path d='M2 4l3 3 3-3'/></svg>"),
+    linear-gradient(to bottom, #b0b6bf 0%, #eef0f3 100%);
+  color: #1f2937;
 }
 .select-pill[data-urgency="medium"] {
   background-image:
-    linear-gradient(180deg, rgba(255, 250, 230, 0.95) 0%, rgba(252, 211, 77, 0.45) 100%),
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10' fill='none' stroke='%2392400e' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'><path d='M2 4l3 3 3-3'/></svg>");
-  color: #92400e;
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10' fill='none' stroke='%2392400e' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'><path d='M2 4l3 3 3-3'/></svg>"),
+    linear-gradient(to bottom, #fbbf24 0%, #fef3c7 100%);
+  color: #7c2d12;
 }
 .select-pill[data-urgency="high"] {
   background-image:
-    linear-gradient(180deg, rgba(255, 240, 240, 0.95) 0%, rgba(252, 165, 165, 0.55) 100%),
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10' fill='none' stroke='%23b91c1c' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'><path d='M2 4l3 3 3-3'/></svg>");
-  color: #b91c1c;
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10' fill='none' stroke='%23991b1b' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'><path d='M2 4l3 3 3-3'/></svg>"),
+    linear-gradient(to bottom, #f87171 0%, #fee2e2 100%);
+  color: #991b1b;
 }
 
 /* Reward (rarity) color tints */
 .select-pill[data-rarity="common"] {
-  color: rgba(32, 32, 32, 0.62);
+  color: rgba(32, 32, 32, 0.7);
 }
 .select-pill[data-rarity="rare"] {
   background-image:
-    linear-gradient(180deg, rgba(239, 246, 255, 0.95) 0%, rgba(147, 197, 253, 0.55) 100%),
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10' fill='none' stroke='%231d4ed8' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'><path d='M2 4l3 3 3-3'/></svg>");
-  color: #1d4ed8;
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10' fill='none' stroke='%231e3a8a' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'><path d='M2 4l3 3 3-3'/></svg>"),
+    linear-gradient(to bottom, #60a5fa 0%, #dbeafe 100%);
+  color: #1e3a8a;
 }
 .select-pill[data-rarity="legendary"] {
   background-image:
-    linear-gradient(180deg, rgba(255, 251, 235, 0.95) 0%, rgba(252, 211, 77, 0.6) 100%),
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10' fill='none' stroke='%23b45309' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'><path d='M2 4l3 3 3-3'/></svg>");
-  color: #b45309;
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10' fill='none' stroke='%23854d0e' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'><path d='M2 4l3 3 3-3'/></svg>"),
+    linear-gradient(to bottom, #fbbf24 0%, #fef3c7 100%);
+  color: #854d0e;
 }
 
 @media (max-width: 640px) {

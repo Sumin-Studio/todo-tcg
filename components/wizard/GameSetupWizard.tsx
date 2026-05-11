@@ -471,7 +471,7 @@ export default function GameSetupWizard({ initialState }: GameSetupWizardProps) 
 
                     {/* Bottom: urgency + rarity picker */}
                     <div
-                      className={`pointer-events-none absolute inset-x-0 bottom-3 flex flex-col items-center gap-1.5 px-3 transition-opacity ${
+                      className={`pointer-events-none absolute inset-x-0 -bottom-2 flex flex-col items-center gap-1.5 px-3 transition-opacity ${
                         active ? "opacity-100" : "opacity-0 group-hover:opacity-100"
                       }`}
                     >
