@@ -118,6 +118,22 @@ export default function Card({ card, isComplete, onClick }: CardProps) {
 
       <div className={styles.textLayer}>
         <span className={styles.taskName}>{card.taskName}</span>
+        <div className={styles.cardMeta}>
+          <span
+            className={styles.urgencyDot}
+            style={{ background: `var(--urgency-${card.urgency})` }}
+            aria-label={`${card.urgency} urgency`}
+          />
+          <span className={styles.dueDate}>
+            {card.dueDate
+              ? new Intl.DateTimeFormat("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  timeZone: "UTC",
+                }).format(new Date(card.dueDate + "T00:00:00Z"))
+              : null}
+          </span>
+        </div>
       </div>
 
       {hasHolographicEffect && (

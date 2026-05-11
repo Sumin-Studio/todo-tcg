@@ -1,32 +1,11 @@
-import { notFound } from "next/navigation";
-import { getSupabaseServer } from "@/lib/supabase/server";
-import { getGame } from "@/lib/supabase/queries";
-import PlayerPackView from "./PlayerPackView";
+import { redirect } from "next/navigation";
 
 interface Props {
   params: Promise<{ gameId: string; playerId: string }>;
 }
 
+// Redirect legacy links (no day segment) to day 0
 export default async function PlayPage({ params }: Props) {
   const { gameId, playerId } = await params;
-  const supabase = getSupabaseServer();
-  const result = await getGame(supabase, gameId);
-
-  if (!result.success) notFound();
-
-  const game = result.data;
-  const player = game.players.find((p) => p.id === playerId);
-
-  if (!player) notFound();
-
-  return (
-    <main>
-      <PlayerPackView
-        gameId={gameId}
-        playerId={playerId}
-        gameTitle={game.title}
-        cards={player.cards}
-      />
-    </main>
-  );
+  redirect(`/play/${gameId}/${playerId}/0`);
 }

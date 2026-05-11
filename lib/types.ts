@@ -1,6 +1,7 @@
 // lib/types.ts — Single source of truth for all shared TypeScript interfaces
 
 export type Rarity = "common" | "rare" | "legendary";
+export type Urgency = "low" | "medium" | "high";
 
 export interface Card {
   id: string;
@@ -8,11 +9,14 @@ export interface Card {
   rarity: Rarity;
   artUrl: string; // Supabase Storage URL; "" = use CSS gradient fallback
   flavorText: string;
+  dueDate: string;  // ISO date "YYYY-MM-DD"
+  urgency: Urgency;
 }
 
 export interface PackSettings {
   playerCount: number;
-  cardsPerPack: number;
+  startDate: string;    // ISO date "YYYY-MM-DD" — replaces cardsPerPack
+  durationDays: number; // how many days to spread tasks across
   rarityDistribution: {
     common: number;
     rare: number;
@@ -24,7 +28,7 @@ export interface PackSettings {
 export interface Player {
   id: string;
   name: string;
-  cards: Card[];
+  packsByDay: Record<number, Card[]>; // dayOffset 0..durationDays-1 → cards
 }
 
 export interface Game {

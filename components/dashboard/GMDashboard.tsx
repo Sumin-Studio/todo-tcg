@@ -12,7 +12,10 @@ interface GMDashboardProps {
 export default function GMDashboard({ game }: GMDashboardProps) {
   const { completions, loading } = useGMDashboard({ gameId: game.id });
 
-  const totalCards = game.players.reduce((sum, p) => sum + p.cards.length, 0);
+  const totalCards = game.players.reduce(
+    (sum, p) => sum + Object.values(p.packsByDay).flat().length,
+    0
+  );
   const completedCount = completions.length;
   const overallProgress = totalCards > 0 ? (completedCount / totalCards) * 100 : 0;
 

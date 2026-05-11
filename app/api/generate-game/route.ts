@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { createGame } from "@/lib/supabase/queries";
-import { dealPacks, generateGameId, generateGmToken } from "@/lib/game-engine";
+import { dealPacksByDay, generateGameId, generateGmToken } from "@/lib/game-engine";
 import { getFlavorText } from "@/lib/flavor-text";
-import type { Card, PackSettings, Rarity } from "@/lib/types";
+import type { Card, PackSettings, Rarity, Urgency } from "@/lib/types";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -11,6 +11,8 @@ export const maxDuration = 60;
 interface TaskInput {
   name: string;
   rarity: Rarity;
+  urgency: Urgency;
+  dueDate: string; // ISO "YYYY-MM-DD"
   customImageUrl?: string;
 }
 
@@ -46,12 +48,14 @@ export async function POST(req: NextRequest) {
     id: `${gameId}-card-${i}`,
     taskName: task.name,
     rarity: task.rarity,
+    urgency: task.urgency,
+    dueDate: task.dueDate,
     artUrl: "", // filled in after image generation below
     flavorText: getFlavorText(`${gameId}-card-${i}`, task.rarity),
   }));
 
-  // Deal packs
-  const packResult = dealPacks(cardPool, settings, gameId);
+  // Deal packs by day
+  const packResult = dealPacksByDay(cardPool, settings, gameId);
   if (!packResult.success) {
     return NextResponse.json({ error: packResult.error.message }, { status: 400 });
   }
@@ -145,11 +149,16 @@ export async function POST(req: NextRequest) {
     })
   );
 
-  // Update artUrls in dealt player cards to match generated URLs
+  // Update artUrls in dealt player packs to match generated URLs
   const artUrlMap = new Map(cardPool.map((c) => [c.id, c.artUrl]));
   const playersWithArt = players.map((p) => ({
     ...p,
-    cards: p.cards.map((c) => ({ ...c, artUrl: artUrlMap.get(c.id) ?? "" })),
+    packsByDay: Object.fromEntries(
+      Object.entries(p.packsByDay).map(([day, cards]) => [
+        day,
+        cards.map((c) => ({ ...c, artUrl: artUrlMap.get(c.id) ?? "" })),
+      ])
+    ),
   }));
 
   // Save to Supabase
@@ -172,12 +181,32 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Build one link entry per (player × day) so the wizard can show them grouped
+  const { startDate, durationDays } = settings;
+  const playerLinks = playersWithArt.flatMap((p) =>
+    Array.from({ length: durationDays }, (_, dayOffset) => {
+      const date = new Date(startDate + "T00:00:00Z");
+      date.setUTCDate(date.getUTCDate() + dayOffset);
+      const dateLabel = date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        timeZone: "UTC",
+      });
+      return {
+        playerId: p.id,
+        name: p.name,
+        dayOffset,
+        dateLabel,
+        cardCount: (p.packsByDay[dayOffset] ?? []).length,
+      };
+    })
+  );
+
   return NextResponse.json({
     gameId,
     gmToken,
-    playerLinks: playersWithArt.map((p) => ({
-      playerId: p.id,
-      name: p.name,
-    })),
+    playerLinks,
+    durationDays,
+    startDate,
   });
 }

@@ -12,6 +12,18 @@ function seededShuffle<T>(arr: T[], rng: () => number): T[] {
   return a;
 }
 
+/** Parse an ISO date string "YYYY-MM-DD" into a UTC timestamp (midnight). */
+function parseIsoDate(iso: string): number {
+  const [y, m, d] = iso.split("-").map(Number);
+  return Date.UTC(y, m - 1, d);
+}
+
+/** Return the number of whole days between two ISO date strings. */
+function daysBetween(fromIso: string, toIso: string): number {
+  const MS_PER_DAY = 86_400_000;
+  return Math.round((parseIsoDate(toIso) - parseIsoDate(fromIso)) / MS_PER_DAY);
+}
+
 export function validateSettings(
   cardPool: Card[],
   settings: PackSettings
@@ -22,19 +34,26 @@ export function validateSettings(
   if (settings.playerCount < 1) {
     return { success: false, error: new Error("At least one player is required") };
   }
-  const totalNeeded = settings.playerCount * settings.cardsPerPack;
-  if (totalNeeded > cardPool.length) {
-    return {
-      success: false,
-      error: new Error(
-        `Not enough cards: ${settings.playerCount} players × ${settings.cardsPerPack} cards = ${totalNeeded} needed, but only ${cardPool.length} cards in pool`
-      ),
-    };
+  if (settings.durationDays < 1) {
+    return { success: false, error: new Error("Duration must be at least 1 day") };
   }
   return { success: true, data: true };
 }
 
-export function dealPacks(
+/**
+ * dealPacksByDay — distribute cards among players grouped by their due date.
+ *
+ * For each day offset 0..durationDays-1:
+ *   1. Collect cards whose dueDate falls on that day.
+ *   2. Seeded-shuffle the bucket (seed = gameId + ":" + dayOffset).
+ *   3. Round-robin assign shuffled cards to players.
+ *
+ * Cards whose dueDate is outside [startDate, startDate+durationDays-1] are
+ * clamped to the nearest valid day (defensive; wizard should prevent this).
+ *
+ * Returns Player[] where each player has a `packsByDay` map.
+ */
+export function dealPacksByDay(
   cardPool: Card[],
   settings: PackSettings,
   seed: string
@@ -42,25 +61,36 @@ export function dealPacks(
   const validation = validateSettings(cardPool, settings);
   if (!validation.success) return validation;
 
-  const rng = mulberry32(djb2Hash(seed));
-  const { playerCount, cardsPerPack } = settings;
+  const { playerCount, durationDays, startDate } = settings;
 
-  // Shuffle the entire card pool — rarity is not used for dealing
-  const shuffledPool = seededShuffle([...cardPool], rng);
+  // Initialise players
+  const players: Player[] = Array.from({ length: playerCount }, (_, i) => ({
+    id: `player-${i + 1}`,
+    name: `Player ${i + 1}`,
+    packsByDay: {},
+  }));
 
-  const players: Player[] = [];
-  let poolIndex = 0;
+  // Bucket cards by day offset, clamping out-of-range dates
+  const buckets: Card[][] = Array.from({ length: durationDays }, () => []);
+  for (const card of cardPool) {
+    let offset = daysBetween(startDate, card.dueDate);
+    offset = Math.max(0, Math.min(durationDays - 1, offset));
+    buckets[offset].push(card);
+  }
 
-  for (let i = 0; i < playerCount; i++) {
-    const cards: Card[] = [];
-    for (let j = 0; j < cardsPerPack; j++) {
-      cards.push(shuffledPool[poolIndex]);
-      poolIndex++;
-    }
-    players.push({
-      id: `player-${i + 1}`,
-      name: `Player ${i + 1}`,
-      cards,
+  // For each day, shuffle and round-robin assign to players
+  for (let day = 0; day < durationDays; day++) {
+    const bucket = buckets[day];
+    if (bucket.length === 0) continue;
+
+    const daySeed = `${seed}:${day}`;
+    const rng = mulberry32(djb2Hash(daySeed));
+    const shuffled = seededShuffle(bucket, rng);
+
+    shuffled.forEach((card, idx) => {
+      const player = players[idx % playerCount];
+      if (!player.packsByDay[day]) player.packsByDay[day] = [];
+      player.packsByDay[day].push(card);
     });
   }
 

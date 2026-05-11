@@ -52,8 +52,9 @@ export const RARITY_COLORS: Record<Rarity, string> = {
 };
 
 export const DEFAULT_PACK_SETTINGS = {
-  playerCount: 4,
-  cardsPerPack: 5,
+  playerCount: 1,
+  startDate: new Date().toISOString().slice(0, 10), // today's date YYYY-MM-DD
+  durationDays: 7,
   rarityDistribution: {
     common: 3,
     rare: 1,

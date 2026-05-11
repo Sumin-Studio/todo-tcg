@@ -254,7 +254,9 @@ export default function FrameBoosterPack({ onOpen }: FrameBoosterPackProps) {
         touchAction: "none",
       }}
     >
-      {/* Card-back slides up from below to centered resting position */}
+      {/* Card-back slides up from below to centered resting position.
+          Size matches PackReveal's --card-width/--card-height so the handoff
+          is visually identical — same image at same coords. */}
       {sliding && (
         <img
           src="/card-back.png"
@@ -264,8 +266,10 @@ export default function FrameBoosterPack({ onOpen }: FrameBoosterPackProps) {
             position: "absolute",
             left: "50%",
             top: "50%",
-            width: "min(60vw, 240px)",
-            height: "auto",
+            width: "var(--card-width)",
+            height: "var(--card-height)",
+            objectFit: "cover",
+            borderRadius: "var(--card-radius)",
             transform: "translate(-50%, 50vh)",
             zIndex: 1,
             animation: `fbp-card-up ${SLIDEUP_MS}ms cubic-bezier(0.22, 0.8, 0.36, 1) forwards`,

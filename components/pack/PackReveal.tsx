@@ -10,6 +10,11 @@ interface PackRevealProps {
   onComplete: () => void;
 }
 
+type CardPhase = "back" | "front" | "exiting";
+
+const EXIT_MS = 450;
+const FLIP_MS = 600;
+
 function RarityStars({ rarity }: { rarity: CardType["rarity"] }) {
   const count = rarity === "common" ? 1 : rarity === "rare" ? 2 : 3;
   const starClass =
@@ -25,12 +30,28 @@ function RarityStars({ rarity }: { rarity: CardType["rarity"] }) {
   );
 }
 
-type AnimPhase = "idle" | "exiting";
+function CardBackImg({ style }: { style?: React.CSSProperties }) {
+  return (
+    <img
+      src="/card-back.png"
+      alt=""
+      aria-hidden="true"
+      style={{
+        width: "100%",
+        height: "100%",
+        objectFit: "cover",
+        borderRadius: "var(--card-radius)",
+        ...style,
+      }}
+    />
+  );
+}
 
 export default function PackReveal({ cards, onComplete }: PackRevealProps) {
   const [current, setCurrent] = useState(0);
-  const [phase, setPhase] = useState<AnimPhase>("idle");
-  const [effectKey, setEffectKey] = useState(0);
+  const [phase, setPhase] = useState<CardPhase>("back");
+  // Rarity effect plays once flip is complete, not at flip start
+  const [effectArmed, setEffectArmed] = useState(false);
 
   // Lock scroll — iOS Safari ignores overflow:hidden; position:fixed is the only reliable fix
   useEffect(() => {
@@ -46,40 +67,50 @@ export default function PackReveal({ cards, onComplete }: PackRevealProps) {
     };
   }, []);
 
+  // Trigger rarity effect after flip finishes
   useEffect(() => {
-    if (phase === "exiting") {
-      const t = setTimeout(() => {
-        const next = current + 1;
-        if (next >= cards.length) {
-          onComplete();
-        } else {
-          setCurrent(next);
-          setPhase("idle");
-          setEffectKey((k) => k + 1);
-        }
-      }, 450);
-      return () => clearTimeout(t);
+    if (phase !== "front") {
+      setEffectArmed(false);
+      return;
     }
+    const t = setTimeout(() => setEffectArmed(true), FLIP_MS);
+    return () => clearTimeout(t);
+  }, [phase, current]);
+
+  // After exit animation, advance to next card or complete
+  useEffect(() => {
+    if (phase !== "exiting") return;
+    const t = setTimeout(() => {
+      const next = current + 1;
+      if (next >= cards.length) {
+        onComplete();
+      } else {
+        setCurrent(next);
+        setPhase("back");
+      }
+    }, EXIT_MS);
+    return () => clearTimeout(t);
   }, [phase, current, cards.length, onComplete]);
 
   function handleClick() {
-    if (phase === "idle") setPhase("exiting");
+    if (phase === "back") {
+      setPhase("front");
+    } else if (phase === "front") {
+      setPhase("exiting");
+    }
   }
 
   const currentCard = cards[current];
-  const nextCard    = cards[current + 1];
-  const nextNextCard = cards[current + 2];
-  const remaining   = cards.length - current;
-
+  const remaining = cards.length - current;
   const rarity = currentCard.rarity;
-  const showEffect = phase === "idle" && (rarity === "rare" || rarity === "legendary");
+  const showEffect = effectArmed && phase === "front" && (rarity === "rare" || rarity === "legendary");
+  const isFlipped = phase === "front" || phase === "exiting";
 
   return (
     <div className="relative flex h-screen items-center justify-center">
-
-      {/* Full-screen rarity effect */}
+      {/* Full-screen rarity effect — fires after flip completes */}
       {showEffect && (
-        <div key={effectKey} className={rarity === "legendary" ? styles.effectLegendary : styles.effectRare} aria-hidden="true">
+        <div key={current} className={rarity === "legendary" ? styles.effectLegendary : styles.effectRare} aria-hidden="true">
           <div className={styles.effectRays} />
           <div className={styles.effectShockwave} />
           <div className={styles.effectShockwave2} />
@@ -90,43 +121,47 @@ export default function PackReveal({ cards, onComplete }: PackRevealProps) {
 
       <div className="flex flex-col items-center gap-4">
         <div
-          className="relative"
-          style={{ width: "var(--card-width)", height: "var(--card-height)" }}
+          className={styles.flipScene}
+          style={{ width: "var(--card-width)", height: "var(--card-height)", position: "relative" }}
         >
-          {/* Stack card 2 — farthest back, face-up */}
-          <div className={styles.stackCard2} style={{ opacity: remaining > 2 ? 1 : 0 }} aria-hidden="true">
-            {nextNextCard && <Card card={nextNextCard} isComplete={false} />}
+          {/* Stack — face-down card-backs behind the top card */}
+          <div className={styles.stackCard2} style={{ opacity: remaining > 2 ? 0.45 : 0 }} aria-hidden="true">
+            <CardBackImg />
+          </div>
+          <div className={styles.stackCard1} style={{ opacity: remaining > 1 ? 0.68 : 0 }} aria-hidden="true">
+            <CardBackImg />
           </div>
 
-          {/* Stack card 1 — second from top, face-up */}
-          <div className={styles.stackCard1} style={{ opacity: remaining > 1 ? 1 : 0 }} aria-hidden="true">
-            {nextCard && <Card card={nextCard} isComplete={false} />}
-          </div>
-
-          {/* Top card — face-up, clickable */}
+          {/* Top card — flippable + clickable */}
           <div
             key={current}
             className={[
               styles.stackCardTop,
-              current > 0          ? styles.stackPromote  : "",
-              phase === "exiting"  ? styles.stackExitRight : "",
-            ]
-              .filter(Boolean)
-              .join(" ")}
+              phase === "exiting" ? styles.stackExitFade : "",
+            ].filter(Boolean).join(" ")}
             onClick={handleClick}
             role="button"
             tabIndex={0}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") handleClick();
             }}
-            aria-label="Tap to go to next card"
+            aria-label={phase === "back" ? "Tap to flip card" : "Tap to dismiss card"}
           >
-            <Card card={currentCard} isComplete={false} />
+            <div className={`${styles.flipCard} ${isFlipped ? styles.flipped : ""}`}>
+              {/* flipFront sits at 0deg — shown when not flipped */}
+              <div className={styles.flipFront}>
+                <CardBackImg />
+              </div>
+              {/* flipBack sits at 180deg — shown after flip */}
+              <div className={styles.flipBack}>
+                <Card card={currentCard} isComplete={false} />
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Rarity stars — re-mounts on each card change to replay the appear animation */}
-        <RarityStars key={current} rarity={rarity} />
+        {/* Rarity stars only after flip */}
+        {phase === "front" && <RarityStars key={current} rarity={rarity} />}
       </div>
     </div>
   );

@@ -37,6 +37,10 @@
   --color-common: #b7b7b7;
   --color-rare: #e4e4e4;
   --color-legendary: #ff9e16;
+
+  --urgency-low: #9CA3AF;
+  --urgency-medium: #F59E0B;
+  --urgency-high: #EF4444;
 }
 
 @theme inline {
@@ -258,6 +262,87 @@ a {
 
 .app-scroll-hidden::-webkit-scrollbar {
   display: none;
+}
+
+/* Glassy skeuomorphic pill-style <select> — matches .app-button language */
+.select-pill {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.55) 45%, rgba(245, 245, 245, 0.85) 100%),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10' fill='none' stroke='%23202020' stroke-opacity='0.55' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M2 4l3 3 3-3'/></svg>");
+  background-repeat: no-repeat, no-repeat;
+  background-position: 0 0, right 10px center;
+  background-size: 100% 100%, 10px 10px;
+  background-color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  outline: 1px solid var(--border-button);
+  outline-offset: -1px;
+  border-radius: 999px;
+  padding: 7px 28px 7px 14px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text-body);
+  cursor: pointer;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 6px 6px -4px rgba(255, 255, 255, 1),
+    inset 0 -3px 4px -2px rgba(0, 0, 0, 0.08),
+    0 1px 0 rgba(78, 78, 78, 0.18),
+    0 2px 4px rgba(0, 0, 0, 0.08);
+  transition: transform 100ms ease, filter 120ms ease;
+}
+
+.select-pill:hover {
+  filter: brightness(1.04);
+}
+
+.select-pill:active {
+  transform: translateY(1px);
+}
+
+.select-pill:focus-visible {
+  outline: 1px solid rgba(32, 32, 32, 0.45);
+  outline-offset: 2px;
+}
+
+/* Urgency color tints (gradient stays, color overlay shifts the hue) */
+.select-pill[data-urgency="low"] {
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(229, 231, 235, 0.6) 100%),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10' fill='none' stroke='%234b5563' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'><path d='M2 4l3 3 3-3'/></svg>");
+  color: #374151;
+}
+.select-pill[data-urgency="medium"] {
+  background-image:
+    linear-gradient(180deg, rgba(255, 250, 230, 0.95) 0%, rgba(252, 211, 77, 0.45) 100%),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10' fill='none' stroke='%2392400e' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'><path d='M2 4l3 3 3-3'/></svg>");
+  color: #92400e;
+}
+.select-pill[data-urgency="high"] {
+  background-image:
+    linear-gradient(180deg, rgba(255, 240, 240, 0.95) 0%, rgba(252, 165, 165, 0.55) 100%),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10' fill='none' stroke='%23b91c1c' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'><path d='M2 4l3 3 3-3'/></svg>");
+  color: #b91c1c;
+}
+
+/* Reward (rarity) color tints */
+.select-pill[data-rarity="common"] {
+  color: rgba(32, 32, 32, 0.62);
+}
+.select-pill[data-rarity="rare"] {
+  background-image:
+    linear-gradient(180deg, rgba(239, 246, 255, 0.95) 0%, rgba(147, 197, 253, 0.55) 100%),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10' fill='none' stroke='%231d4ed8' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'><path d='M2 4l3 3 3-3'/></svg>");
+  color: #1d4ed8;
+}
+.select-pill[data-rarity="legendary"] {
+  background-image:
+    linear-gradient(180deg, rgba(255, 251, 235, 0.95) 0%, rgba(252, 211, 77, 0.6) 100%),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10' fill='none' stroke='%23b45309' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'><path d='M2 4l3 3 3-3'/></svg>");
+  color: #b45309;
 }
 
 @media (max-width: 640px) {

@@ -165,6 +165,34 @@
      0    2px 0 #fff;
 }
 
+.cardMeta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 5px;
+}
+
+.urgencyDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 4px 1px rgba(0, 0, 0, 0.12);
+}
+
+.dueDate {
+  font-size: 9px;
+  font-weight: 600;
+  color: #4a4a4a;
+  font-family: Arial, Helvetica, sans-serif;
+  letter-spacing: 0.04em;
+  text-shadow:
+    -1px -1px 0 #fff,
+     1px -1px 0 #fff,
+    -1px  1px 0 #fff,
+     1px  1px 0 #fff;
+}
+
 .divider {
   height: 1px;
   background: rgba(0, 0, 0, 0.15);
